@@ -63,8 +63,8 @@ public class EvoManager {
             tick();
             draw();
 
-            long runtime = System.currentTimeMillis() - startTime;
-            Log.doLog(TAG, "Runtime: " + String.valueOf(runtime));
+//            long runtime = System.currentTimeMillis() - startTime;
+//            Log.doLog(TAG, "Runtime: " + String.valueOf(runtime));
             try {
                 Thread.sleep(mFrameTime);
 
