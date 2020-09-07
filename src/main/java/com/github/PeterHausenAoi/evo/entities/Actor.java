@@ -1,10 +1,5 @@
 package main.java.com.github.PeterHausenAoi.evo.entities;
 
-import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
-
-import java.util.ArrayList;
-import java.util.List;
-
 abstract public class Actor extends BaseEntity implements Movable {
     private static final String TAG = Actor.class.getSimpleName();
 

@@ -4,6 +4,9 @@ import javafx.scene.canvas.GraphicsContext;
 import main.java.com.github.PeterHausenAoi.evo.entities.Critter;
 import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class EvoManager {
     private static final String TAG = EvoManager.class.getSimpleName();
 
@@ -14,11 +17,13 @@ public class EvoManager {
     private int mTickRate;
     private long mFrameTime;
 
-    private GraphicsContext mGraphics;
     private Grid mGrid;
+    List<Critter> mCritters;
 
+    private GraphicsContext mGraphics;
     private Thread mThread;
     private boolean mShouldPause;
+
     private boolean mShouldStop;
 
     public EvoManager(GraphicsContext graphics, int width, int height, int cellWidth, int tickRate) {
@@ -36,20 +41,30 @@ public class EvoManager {
         mShouldStop = false;
 
         this.mGrid = new Grid(width, height, cellWidth);
-        crit = new Critter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
-        mGrid.placeEntity(crit);
+
+        mCritters = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Critter crit = new Critter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+            mCritters.add(crit);
+            mGrid.placeEntity(crit);
+        }
     }
-    Critter crit;
 
     private void tick(){
-        crit.tick(mFrameTime, mGrid);
+        for (Critter crit : mCritters) {
+            crit.tick(mFrameTime, mGrid);
+        }
     }
 
     private void process(){
         while(!mShouldStop){
+            long startTime = System.currentTimeMillis();
             tick();
             draw();
 
+            long runtime = System.currentTimeMillis() - startTime;
+            Log.doLog(TAG, "Runtime: " + String.valueOf(runtime));
             try {
                 Thread.sleep(mFrameTime);
 
@@ -75,6 +90,8 @@ public class EvoManager {
         mGraphics.clearRect(0,0,mWidth, mHeight);
         mGrid.draw(mGraphics);
 
-        crit.draw(mGraphics);
+        for (Critter crit : mCritters) {
+            crit.draw(mGraphics);
+        }
     }
 }

@@ -3,7 +3,6 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.graphics.Drawable;
 
-import java.awt.*;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;

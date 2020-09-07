@@ -34,8 +34,28 @@ public class Grid implements Drawable {
     }
 
     public void placeEntity(BaseEntity entity){
-        for (int x = 0; x < mColcount; x++){
-            for (int y = 0; y < mRowCount; y++){
+        int startX = (entity.getTopLeft().getX().intValue() / mCellWidth) - 1;
+        if(startX < 0){
+            startX = 0;
+        }
+
+        int endX = (entity.getBotRight().getX().intValue() / mCellWidth) + 1;
+        if(endX >= mColcount){
+            endX = mColcount - 1;
+        }
+
+        int startY = (entity.getTopLeft().getY().intValue() / mCellWidth) - 1;
+        if(startY < 0){
+            startY = 0;
+        }
+
+        int endY = (entity.getBotRight().getY().intValue() / mCellWidth) + 1;
+        if(endY >= mRowCount){
+            endY = mRowCount - 1;
+        }
+
+        for (int x = startX; x <= endX; x++){
+            for (int y = startY; y < endY; y++){
                  GridCell cell = mGrid[x][y];
 
                  if (cell.isColliding(entity)){

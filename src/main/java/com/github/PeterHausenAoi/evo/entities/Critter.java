@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.flow.Tickable;
+import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,10 @@ public class Critter extends Actor implements Tickable {
 
         mWidth = width;
         mHeight = height;
+
+        mSpeed = Math.random() * 500 + 50;
+
+        Log.doLog(TAG, String.valueOf(mSpeed));
     }
 
     public boolean isTargetReached(){
@@ -69,10 +74,11 @@ public class Critter extends Actor implements Tickable {
 
         double dist = Math.sqrt(Math.pow(targetX, 2) + Math.pow(targetY, 2));
 
-        double travelDist = dist * (mSpeed / 1000);
+        double travelDist = mSpeed / 1000.0 * frameTime;
+        double ratio = dist / travelDist;
 
-        double ratX = targetX / travelDist;
-        double ratY = targetY / travelDist;
+        double ratX = targetX / ratio;
+        double ratY = targetY / ratio;
 
         Point mVect = new Point(ratX, ratY);
 
@@ -112,6 +118,9 @@ public class Critter extends Actor implements Tickable {
         double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
 
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
+
+        g.setFill(Color.YELLOW);
+        g.fillText(String.valueOf(Math.round(mSpeed)), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
     }
 
     @Override
