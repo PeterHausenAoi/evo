@@ -130,4 +130,8 @@ abstract public class BaseEntity implements Collidable, Drawable {
     public Line2D getBot() {
         return mBot;
     }
+
+    public Point getCenter() {
+        return mCenter;
+    }
 }

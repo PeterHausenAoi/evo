@@ -88,6 +88,10 @@ public class GridCell implements Drawable, Collidable {
         }
     }
 
+    public List<BaseEntity> getEntities() {
+        return mEntities;
+    }
+
     @Override
     public void draw(GraphicsContext g) {
         g.setFill(mEntities.size() == 0 ? UNOCCUPIED : OCCUPIED);

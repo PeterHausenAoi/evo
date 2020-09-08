@@ -2,7 +2,6 @@ package main.java.com.github.PeterHausenAoi.evo.flow;
 
 import javafx.scene.canvas.GraphicsContext;
 import main.java.com.github.PeterHausenAoi.evo.entities.Critter;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,14 +16,12 @@ public class EvoManager {
     private int mTickRate;
     private long mFrameTime;
 
+    private long mSubFrameTime;
+
     private Grid mGrid;
     List<Critter> mCritters;
 
     private GraphicsContext mGraphics;
-    private Thread mThread;
-    private boolean mShouldPause;
-
-    private boolean mShouldStop;
 
     public EvoManager(GraphicsContext graphics, int width, int height, int cellWidth, int tickRate) {
         this.mGraphics = graphics;
@@ -36,9 +33,6 @@ public class EvoManager {
 
         this.mTickRate = tickRate;
         this.mFrameTime = 1000 / mTickRate;
-
-        mShouldPause = false;
-        mShouldStop = false;
 
         this.mGrid = new Grid(width, height, cellWidth);
 
@@ -57,33 +51,19 @@ public class EvoManager {
         }
     }
 
-    private void process(){
-        while(!mShouldStop){
-            long startTime = System.currentTimeMillis();
-            tick();
-            draw();
+    public void step(long nanoDiff){
+        long millidiff = nanoDiff / 1000000;
 
-//            long runtime = System.currentTimeMillis() - startTime;
-//            Log.doLog(TAG, "Runtime: " + String.valueOf(runtime));
-            try {
-                Thread.sleep(mFrameTime);
+        mSubFrameTime += millidiff;
 
-//                while (mShouldPause){
-//                    Thread.sleep(mFrameTime);
-//                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        if (mSubFrameTime < mFrameTime){
+            return;
         }
-    }
 
-    public void playPause(){
-//        mShouldPause = !mShouldPause;
-    }
+        mSubFrameTime = 0;
 
-    public void start(){
-        mThread = new Thread(this::process);
-        mThread.start();
+        tick();
+        draw();
     }
 
     public void draw(){

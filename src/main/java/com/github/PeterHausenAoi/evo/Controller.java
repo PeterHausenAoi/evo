@@ -1,5 +1,6 @@
 package main.java.com.github.PeterHausenAoi.evo;
 
+import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -15,6 +16,8 @@ import java.awt.image.BufferedImage;
 public class Controller {
     public final String TAG = Controller.class.getSimpleName();
 
+    private AnimationTimer timer;
+
     private EvoManager mManager;
 
     @FXML
@@ -27,13 +30,22 @@ public class Controller {
     private void initialize(){
         Log.doLog(TAG, "initialize");
 
-        Thread thread = new Thread(() -> {
-            GraphicsContext g = Controller.this.mAnimCanvas.getGraphicsContext2D();
-            mManager = new EvoManager(g, (int)mAnimCanvas.getWidth(), (int)mAnimCanvas.getHeight(), 50, 30);
-            mManager.start();
-        });
+        GraphicsContext g = Controller.this.mAnimCanvas.getGraphicsContext2D();
+        mManager = new EvoManager(g, (int)mAnimCanvas.getWidth(), (int)mAnimCanvas.getHeight(), 50, 60);
 
-        thread.start();
+        timer = new AnimationTimer() {
+            long prev = 0;
+            @Override
+            public void handle(long now) {
+                if(prev != 0) {
+                    mManager.step(now - prev);
+                }
+
+                prev = now;
+            }
+        };
+
+        timer.start();
 
         //sprite test
 //        Thread thread = new Thread(){
