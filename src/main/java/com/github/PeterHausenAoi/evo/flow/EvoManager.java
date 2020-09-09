@@ -2,9 +2,12 @@ package main.java.com.github.PeterHausenAoi.evo.flow;
 
 import javafx.scene.canvas.GraphicsContext;
 import main.java.com.github.PeterHausenAoi.evo.entities.Critter;
+import main.java.com.github.PeterHausenAoi.evo.entities.Food;
+import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EvoManager {
     private static final String TAG = EvoManager.class.getSimpleName();
@@ -17,9 +20,14 @@ public class EvoManager {
     private long mFrameTime;
 
     private long mSubFrameTime;
+    private long mTickCount;
+
+    private long mFoodSpawnTime = 10;
 
     private Grid mGrid;
+
     List<Critter> mCritters;
+    List<Food> mFoods;
 
     private GraphicsContext mGraphics;
 
@@ -37,8 +45,9 @@ public class EvoManager {
         this.mGrid = new Grid(width, height, cellWidth);
 
         mCritters = new ArrayList<>();
+        mFoods = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             Critter crit = new Critter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
             mCritters.add(crit);
             mGrid.placeEntity(crit);
@@ -49,6 +58,21 @@ public class EvoManager {
         for (Critter crit : mCritters) {
             crit.tick(mFrameTime, mGrid);
         }
+
+        mCritters = mCritters.stream().filter(critter -> !critter.isDead()).collect(Collectors.toList());
+    }
+
+    private void spawnFood(){
+        if (mFoods.size() > mCritters.size() * 0.2){
+            return;
+        }
+
+        Log.doLog(TAG, "spawnFood");
+        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+        f.setHandler(new EvoManager.FoodHandler(f));
+
+        mGrid.placeEntity(f);
+        mFoods.add(f);
     }
 
     public void step(long nanoDiff){
@@ -58,6 +82,12 @@ public class EvoManager {
 
         if (mSubFrameTime < mFrameTime){
             return;
+        }
+
+        mTickCount++;
+
+        if(mTickCount % (mFoodSpawnTime) == 0){
+            spawnFood();
         }
 
         mSubFrameTime = 0;
@@ -72,6 +102,34 @@ public class EvoManager {
 
         for (Critter crit : mCritters) {
             crit.draw(mGraphics);
+        }
+
+        for (Food food : mFoods){
+            food.draw(mGraphics);
+        }
+    }
+
+    public class FoodHandler{
+        Food mFood;
+
+        public FoodHandler(Food food) {
+            this.mFood = food;
+        }
+
+        public void handle(){
+            EvoManager.this.mFoods.remove(mFood);
+        }
+    }
+
+    public class CritterHandler{
+        Critter mCrit;
+
+        public CritterHandler(Critter crit) {
+            this.mCrit = crit;
+        }
+
+        public void handle(){
+            EvoManager.this.mCritters.remove(mCrit);
         }
     }
 }

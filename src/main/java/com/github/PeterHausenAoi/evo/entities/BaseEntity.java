@@ -83,6 +83,10 @@ abstract public class BaseEntity implements Collidable, Drawable {
         mContainers.add(cell);
     }
 
+    public void clearContainers(){
+        mContainers.clear();
+    }
+
     public boolean isColliding(Collidable other){
         for (Line2D line : mBorders){
             for (Line2D otherLine : other.getBorders()){

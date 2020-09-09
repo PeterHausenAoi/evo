@@ -2,6 +2,7 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.flow.Tickable;
@@ -13,6 +14,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Critter extends Actor implements Tickable {
     private static final String TAG = Critter.class.getSimpleName();
@@ -23,9 +25,10 @@ public class Critter extends Actor implements Tickable {
     private static final String ROTATION_STATE = "ROTATION_STATE";
 
     private Point mTarget;
-    private int mWidth;
 
+    private int mWidth;
     private int mHeight;
+
     private double mAnglePerSec;
     private double mViewDistance = 100.0;
 
@@ -43,6 +46,12 @@ public class Critter extends Actor implements Tickable {
 
     private BaseEntity mTargetEntity;
 
+    private double mMaxHealth;
+    private double mCurrHealth;
+
+    private double mStarvationRate;
+    private boolean mDead = false;
+
     public Critter(Point topLeft, Point topRight, Point botLeft, Point botRight) {
         super(topLeft, topRight, botLeft, botRight);
     }
@@ -59,6 +68,10 @@ public class Critter extends Actor implements Tickable {
         mViewDistance = Math.random() * 450 + 50;
         mViewAngle = Math.random() * 160 + 10;
 
+        mMaxHealth = Math.random() * 120 + 10;
+        mCurrHealth = mMaxHealth;
+
+        mStarvationRate = Math.random() * 10 + 5;
 
         double viewX = Math.random() * 1900;
         double viewY = Math.random() * 900;
@@ -108,7 +121,7 @@ public class Critter extends Actor implements Tickable {
         BaseEntity minEnt = null;
 
         for (BaseEntity ent : ents){
-            if (ent.equals(this)){
+            if (ent.equals(this) || !(ent instanceof Food)){
                 continue;
             }
 
@@ -178,13 +191,68 @@ public class Critter extends Actor implements Tickable {
         mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
                 p.getX().doubleValue(), p.getY().doubleValue());
 
-        ver1 = angleBetween2Lines(mViewFocus.getP1(), mViewFocus.getP2(), mViewFocus.getP1(), new java.awt.Point(mTarget.getX().intValue(),mTarget.getY().intValue()));
+//        ver1 = angleBetween2Lines(mViewFocus.getP1(), mViewFocus.getP2(), mViewFocus.getP1(), new java.awt.Point(mTarget.getX().intValue(),mTarget.getY().intValue()));
     }
 
     @Override
     public void tick(long frameTime, Grid grid) {
-        if(mTarget == null || isTargetReached()){
-            mTarget = new Point(Math.random() * grid.getWidth().doubleValue(), Math.random() * grid.getHeight().doubleValue());
+        for (GridCell cell : mContainers){
+            List<BaseEntity> foods = cell.getEntities().stream().filter(baseEntity -> !baseEntity.equals(this)
+                    && baseEntity instanceof Food
+                    && (baseEntity.isColliding(this) || this.isColliding(baseEntity)))
+                    .collect(Collectors.toList());
+
+            for (BaseEntity f : foods){
+                cell.removeEntity(f);
+                f.clearContainers();
+
+                Food food = (Food)f;
+                food.getHandler().handle();
+
+                this.mCurrHealth += food.getNutrient();
+
+                if(this.mCurrHealth > mMaxHealth){
+                    mCurrHealth = mMaxHealth;
+                }
+            }
+        }
+
+        mCurrHealth -= mStarvationRate / 1000 * frameTime;
+
+        ver1 = mCurrHealth;
+        ver2 = mMaxHealth;
+
+        if(mCurrHealth <= 0){
+            Log.doLog(TAG, "STARVED");
+            mDead = true;
+
+            for (GridCell cell : mContainers){
+                cell.removeEntity(this);
+            }
+
+            mContainers.clear();
+            return;
+        }
+
+        BaseEntity newTarget = getTarget(grid);
+        boolean targetAcquired = false;
+
+        if (newTarget != mTargetEntity){
+            if (newTarget == null){
+                mTarget = null;
+                mTargetEntity = null;
+            }else{
+                targetAcquired = true;
+                mTarget = new Point(newTarget.getCenter().getX(), newTarget.getCenter().getY());
+                mTargetEntity = newTarget;
+            }
+        }
+
+        if(mTarget == null || isTargetReached() || targetAcquired){
+            if (newTarget == null || isTargetReached()){
+                mTarget = new Point(Math.random() * grid.getWidth().doubleValue(), Math.random() * grid.getHeight().doubleValue());
+                mTargetEntity = null;
+            }
 
             mPositionState = ROTATION_STATE;
             mCurrangle = 0.0;
@@ -198,16 +266,6 @@ public class Critter extends Actor implements Tickable {
                 mTargetAngle = angle2;
             }
         }
-
-        BaseEntity newTarget = getTarget(grid);
-
-        if (mTargetEntity == null && newTarget != null){
-            Log.doLog(TAG, "Target acquired");
-        }else if(mTargetEntity != null && newTarget == null){
-            Log.doLog(TAG, "Target lost");
-        }
-
-        mTargetEntity = newTarget;
 
         if(MOVE_STATE.equals(mPositionState)){
             move(frameTime);
@@ -292,11 +350,17 @@ public class Critter extends Actor implements Tickable {
         g.setFill(BOX_COLOR);
         double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
         double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
-
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
 
-        g.setFill(Color.YELLOW);
-        g.fillText(ver1 + " | " + ver2, mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
+//        g.setFill(Color.YELLOW);
+//        g.fillText(ver1 + " | " + ver2, mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
+
+        double hpBar = 50.0;
+        g.setFill(Color.DARKRED);
+        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar, 10);
+
+        g.setFill(Color.DARKGREEN);
+        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar * mCurrHealth / mMaxHealth, 10);
 
         g.setStroke(Color.AQUA);
         g.setLineWidth(5);
@@ -326,5 +390,9 @@ public class Critter extends Actor implements Tickable {
     @Override
     public List<Point> getPoints() {
         return mPoints;
+    }
+
+    public boolean isDead() {
+        return mDead;
     }
 }
