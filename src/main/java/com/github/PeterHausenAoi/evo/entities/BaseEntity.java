@@ -26,22 +26,6 @@ abstract public class BaseEntity implements Collidable, Drawable {
 
     protected List<GridCell> mContainers;
 
-    public BaseEntity(Point topLeft, Point topRight, Point botLeft, Point botRight) {
-        this.mTopLeft = topLeft;
-        this.mTopRight = topRight;
-        this.mBotLeft = botLeft;
-        this.mBotRight = botRight;
-
-        mPoints = new ArrayList<>();
-        mPoints.add(mTopLeft);
-        mPoints.add(mTopRight);
-        mPoints.add(mBotLeft);
-        mPoints.add(mBotRight);
-
-        mContainers = new ArrayList<>();
-        buildBorders();
-    }
-
     public BaseEntity(int x, int y, int width, int height) {
         mTopLeft = new Point(x,y);
         mTopRight = new Point(x + width, y);
@@ -57,6 +41,10 @@ abstract public class BaseEntity implements Collidable, Drawable {
 
         mContainers = new ArrayList<>();
         buildBorders();
+    }
+
+    protected double round(double value, int prec){
+        return (double)Math.round(value * (Math.pow(10, prec))) / Math.pow(10, prec);
     }
 
     protected void buildBorders(){
@@ -84,6 +72,7 @@ abstract public class BaseEntity implements Collidable, Drawable {
     }
 
     public void clearContainers(){
+        mContainers.stream().forEach(gridCell -> gridCell.removeEntity(this));
         mContainers.clear();
     }
 
@@ -93,6 +82,17 @@ abstract public class BaseEntity implements Collidable, Drawable {
                 if (line.intersectsLine(otherLine)){
                     return true;
                 }
+            }
+        }
+
+        List<Point> points = other.getPoints();
+
+        for (Point p : points){
+            if (mTopLeft.getX().doubleValue() <= p.getX().doubleValue()
+                    && p.getX().doubleValue() <= mBotRight.getX().doubleValue()
+                    && mTopLeft.getY().doubleValue() <= p.getY().doubleValue()
+                    && p.getY().doubleValue() <= mBotRight.getY().doubleValue()){
+                return true;
             }
         }
 

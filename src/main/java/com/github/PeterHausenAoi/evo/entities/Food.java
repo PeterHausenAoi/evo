@@ -6,7 +6,7 @@ import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
 
 import java.util.List;
 
-public class Food extends BaseEntity {
+public final class Food extends BaseEntity implements Edible{
     private static final String TAG = Food.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.LIGHTGREEN;
@@ -17,10 +17,6 @@ public class Food extends BaseEntity {
     private EvoManager.FoodHandler handler;
 
     private double mNutrient;
-
-    public Food(Point topLeft, Point topRight, Point botLeft, Point botRight) {
-        super(topLeft, topRight, botLeft, botRight);
-    }
 
     public Food(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -49,8 +45,11 @@ public class Food extends BaseEntity {
         return mNutrient;
     }
 
-    public EvoManager.FoodHandler getHandler() {
-        return handler;
+    @Override
+    public void digest() {
+        if (handler != null){
+            handler.handle();
+        }
     }
 
     public void setHandler(EvoManager.FoodHandler handler) {

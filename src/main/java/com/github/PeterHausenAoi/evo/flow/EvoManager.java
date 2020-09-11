@@ -1,7 +1,8 @@
 package main.java.com.github.PeterHausenAoi.evo.flow;
 
 import javafx.scene.canvas.GraphicsContext;
-import main.java.com.github.PeterHausenAoi.evo.entities.Critter;
+import main.java.com.github.PeterHausenAoi.evo.entities.Carnivore;
+import main.java.com.github.PeterHausenAoi.evo.entities.Herbivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Food;
 import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
@@ -22,11 +23,12 @@ public class EvoManager {
     private long mSubFrameTime;
     private long mTickCount;
 
-    private long mFoodSpawnTime = 10;
+    private long mFoodSpawnTime = 5;
 
     private Grid mGrid;
 
-    List<Critter> mCritters;
+    List<Herbivore> mHerbivores;
+    List<Carnivore> mCarnivores;
     List<Food> mFoods;
 
     private GraphicsContext mGraphics;
@@ -44,31 +46,44 @@ public class EvoManager {
 
         this.mGrid = new Grid(width, height, cellWidth);
 
-        mCritters = new ArrayList<>();
+        mHerbivores = new ArrayList<>();
         mFoods = new ArrayList<>();
+        mCarnivores = new ArrayList<>();
 
-        for (int i = 0; i < 100; i++) {
-            Critter crit = new Critter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
-            mCritters.add(crit);
-            mGrid.placeEntity(crit);
+        for (int i = 0; i < 10; i++) {
+            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 10,10);
+            mHerbivores.add(herb);
+            mGrid.placeEntity(herb);
+        }
+
+        for (int i = 0; i < 1; i++) {
+            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+            mCarnivores.add(car);
+            mGrid.placeEntity(car);
         }
     }
 
     private void tick(){
-        for (Critter crit : mCritters) {
-            crit.tick(mFrameTime, mGrid);
+        for (Carnivore car : mCarnivores) {
+            car.tick(mFrameTime, mGrid);
         }
 
-        mCritters = mCritters.stream().filter(critter -> !critter.isDead()).collect(Collectors.toList());
+        mCarnivores = mCarnivores.stream().filter(car -> !car.isDead()).collect(Collectors.toList());
+
+        for (Herbivore herb : mHerbivores) {
+            herb.tick(mFrameTime, mGrid);
+        }
+
+        mHerbivores = mHerbivores.stream().filter(herb -> !herb.isDead()).collect(Collectors.toList());
     }
 
     private void spawnFood(){
-        if (mFoods.size() > mCritters.size() * 0.2){
+        if (mFoods.size() > mHerbivores.size() * 0.5){
             return;
         }
 
         Log.doLog(TAG, "spawnFood");
-        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 50,50);
         f.setHandler(new EvoManager.FoodHandler(f));
 
         mGrid.placeEntity(f);
@@ -100,12 +115,16 @@ public class EvoManager {
         mGraphics.clearRect(0,0,mWidth, mHeight);
         mGrid.draw(mGraphics);
 
-        for (Critter crit : mCritters) {
-            crit.draw(mGraphics);
-        }
-
         for (Food food : mFoods){
             food.draw(mGraphics);
+        }
+
+        for (Herbivore herb : mHerbivores) {
+            herb.draw(mGraphics);
+        }
+
+        for (Carnivore car : mCarnivores) {
+            car.draw(mGraphics);
         }
     }
 
@@ -118,18 +137,6 @@ public class EvoManager {
 
         public void handle(){
             EvoManager.this.mFoods.remove(mFood);
-        }
-    }
-
-    public class CritterHandler{
-        Critter mCrit;
-
-        public CritterHandler(Critter crit) {
-            this.mCrit = crit;
-        }
-
-        public void handle(){
-            EvoManager.this.mCritters.remove(mCrit);
         }
     }
 }
