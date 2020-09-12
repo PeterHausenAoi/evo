@@ -50,13 +50,13 @@ public class EvoManager {
         mFoods = new ArrayList<>();
         mCarnivores = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
-            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 10,10);
+        for (int i = 0; i < 100; i++) {
+            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
             mHerbivores.add(herb);
             mGrid.placeEntity(herb);
         }
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 20; i++) {
             Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
             mCarnivores.add(car);
             mGrid.placeEntity(car);
@@ -82,7 +82,7 @@ public class EvoManager {
             return;
         }
 
-        Log.doLog(TAG, "spawnFood");
+//        Log.doLog(TAG, "spawnFood");
         Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 50,50);
         f.setHandler(new EvoManager.FoodHandler(f));
 

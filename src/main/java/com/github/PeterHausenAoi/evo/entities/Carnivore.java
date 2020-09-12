@@ -23,12 +23,13 @@ public class Carnivore extends Actor {
 
         mAnglePerSec = Math.random() * 500 + 1;
         mSpeed = Math.random() * 500 + 50;
+//        mSpeed = 10;
 
         mCurrangle = 0.0;
         mViewDistance = Math.random() * 450 + 50;
         mViewAngle = Math.random() * 160 + 10;
 
-        mMaxHealth = Math.random() * 120 + 10;
+        mMaxHealth = Math.random() * 120 + 100;
         mCurrHealth = mMaxHealth;
         mStarvationRate = Math.random() * 10 + 5;
 
@@ -120,18 +121,10 @@ public class Carnivore extends Actor {
                     mViewFocus.getP1(), new java.awt.Point(mTarget.getX().intValue(),mTarget.getY().intValue()));
             double angle2 = (360 - Math.abs(angle1)) * (0 - Math.signum(angle1));
 
-            if (angle2 < 0 && angle1 > 0){
-                int bbb = 0;
-            }
-
             if (Math.abs(angle1) < Math.abs(angle2)){
                 mTargetAngle = round(angle1, 4);
             }else{
                 mTargetAngle = round(angle2, 4);
-            }
-
-            if(mTargetAngle > 190){
-                int sanyi = 0;
             }
         }
 

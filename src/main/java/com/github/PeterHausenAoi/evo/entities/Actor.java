@@ -7,10 +7,7 @@ import main.java.com.github.PeterHausenAoi.evo.util.Log;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 abstract public class Actor extends BaseEntity implements Movable {
@@ -43,16 +40,18 @@ abstract public class Actor extends BaseEntity implements Movable {
     protected String mPositionState;
 
     protected BaseEntity mTargetEntity;
-    protected BaseEntity mPredatorEntity;
     protected String mMode = EAT_MODE;
 
-    protected int mFleeTime;
+    protected double mFleeDist;
+    protected double mMaxFleeDist;
 
     protected double mMaxHealth;
     protected double mCurrHealth;
 
     protected double mStarvationRate;
     protected boolean mDead = false;
+
+    protected Point mVect;
 
     protected Set<Class<? extends BaseEntity>> mFoodClazzez;
     protected Set<Class<? extends BaseEntity>> mPredatorClazzez;
@@ -86,10 +85,6 @@ abstract public class Actor extends BaseEntity implements Movable {
                 continue;
             }
 
-            if (isValidFood(ent.getClass())){
-                int dd = 0;
-            }
-
             double dist = calcDist(ent.getCenter().getX().doubleValue(), ent.getCenter().getY().doubleValue(),
                     mCenter.getX().doubleValue(), mCenter.getY().doubleValue());
 
@@ -102,8 +97,8 @@ abstract public class Actor extends BaseEntity implements Movable {
         return minEnt;
     }
 
-    protected BaseEntity getPredator(Grid grid){
-        List<BaseEntity> ents = new ArrayList<>();
+    protected Set<BaseEntity> getPredators(Grid grid){
+        Set<BaseEntity> ents = new HashSet<>();
         ents.addAll(grid.getConeEntities(mCenter,
                 new Point(mViewFocus.getP2().getX(), mViewFocus.getP2().getY()),
                 new Point(mViewClock.getP2().getX(), mViewClock.getP2().getY())
@@ -116,25 +111,8 @@ abstract public class Actor extends BaseEntity implements Movable {
                 )
         );
 
-        double minDist = 0;
-        BaseEntity minEnt = null;
-
-        for (BaseEntity ent : ents){
-            Class<?> cl = ent.getClass();
-            if (ent.equals(this) || !(isValidPredator(cl))){
-                continue;
-            }
-
-            double dist = calcDist(ent.getCenter().getX().doubleValue(), ent.getCenter().getY().doubleValue(),
-                    mCenter.getX().doubleValue(), mCenter.getY().doubleValue());
-
-            if (dist < minDist || minEnt == null){
-                minDist = dist;
-                minEnt = ent;
-            }
-        }
-
-        return minEnt;
+        return ents.stream().filter(baseEntity -> !baseEntity.equals(this) && isValidPredator(baseEntity.getClass()))
+                .collect(Collectors.toSet());
     }
 
     protected boolean isValidPredator(Class<?> foodClazz){
@@ -189,7 +167,7 @@ abstract public class Actor extends BaseEntity implements Movable {
         mCurrHealth -= mStarvationRate / 1000 * frameTime;
 
         if(mCurrHealth <= 0){
-            Log.doLog(TAG, "STARVED");
+//            Log.doLog(TAG, "STARVED");
             mDead = true;
 
             for (GridCell cell : mContainers){
@@ -205,41 +183,23 @@ abstract public class Actor extends BaseEntity implements Movable {
 
     @Override
     public void move(long frameTime) {
-        if(Double.isNaN(mTarget.getX().doubleValue())){
-            int snyi = 0;
-        }
-
         double targetX = (mTarget.getX().doubleValue() - mCenter.getX().doubleValue());
         double targetY = (mTarget.getY().doubleValue() - mCenter.getY().doubleValue());
 
         double dist = Math.sqrt(Math.pow(targetX, 2) + Math.pow(targetY, 2));
 
-        if(Double.isNaN(dist)){
-            int snyi = 0;
-        }
         double travelDist = mSpeed / 1000.0 * frameTime;
-        if(Double.isNaN(travelDist)){
-            int snyi = 0;
-        }
 
         double ratio = dist / travelDist;
 
-        if(Double.isNaN(ratio)){
-            int snyi = 0;
-        }
         double ratX = targetX / ratio;
-        if(Double.isNaN(ratX)){
-            int snyi = 0;
-        }
         double ratY = targetY / ratio;
 
-        Point mVect = new Point(ratX, ratY);
+        mVect = new Point(ratX, ratY);
 
         double newX = mCenter.getX().doubleValue() + mVect.getX().doubleValue();
         double newY = mCenter.getY().doubleValue() + mVect.getY().doubleValue();
-        if(Double.isNaN(newX)){
-            int snyi = 0;
-        }
+
         if(mVect.getX().doubleValue() > 0 && newX > mTarget.getX().doubleValue()
                 || mVect.getX().doubleValue() < 0 && newX < mTarget.getX().doubleValue()){
             newX = mTarget.getX().doubleValue();
