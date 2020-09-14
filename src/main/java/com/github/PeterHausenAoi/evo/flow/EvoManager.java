@@ -50,7 +50,7 @@ public class EvoManager {
         mFoods = new ArrayList<>();
         mCarnivores = new ArrayList<>();
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
             mHerbivores.add(herb);
             mGrid.placeEntity(herb);

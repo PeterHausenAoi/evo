@@ -2,7 +2,6 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
@@ -48,6 +47,7 @@ abstract public class Actor extends BaseEntity implements Movable {
     protected double mMaxHealth;
     protected double mCurrHealth;
 
+    protected double mAudioRadius;
     protected double mStarvationRate;
     protected boolean mDead = false;
 

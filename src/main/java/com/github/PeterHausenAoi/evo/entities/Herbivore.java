@@ -16,6 +16,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
     private static final Color BOX_COLOR = Color.PURPLE;
     private double mNutrient;
 
+    private Set<BaseEntity> mPrevPredatorBatch = new HashSet<>();
     private Set<BaseEntity> mPredators = new HashSet<>();
 
     public Herbivore(int x, int y, int width, int height) {
@@ -35,6 +36,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
         mViewAngle = Math.random() * 160 + 10;
 
         mMaxHealth = Math.random() * 120 + 10;
+//        mMaxHealth = 200;
         mCurrHealth = mMaxHealth;
 
         mStarvationRate = Math.random() * 10 + 5;
@@ -67,7 +69,8 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
         mNutrient = Math.random() * 10 + 10;
 
-        mMaxFleeDist = 1000;
+        mMaxFleeDist = Math.random() * 900 + 100;
+//        mMaxFleeDist = 1000;
     }
 
     protected Point getInvertedVector(BaseEntity newPredatorEntity){
@@ -97,12 +100,23 @@ public class Herbivore extends Actor implements Tickable, Edible {
         BaseEntity newTargetEntity = getTarget(grid);
         Set<BaseEntity> newPredatorEntities = getPredators(grid);
 
-        if (newPredatorEntities.size() > 0 && mPredators.size() == 0 && !Objects.equals(mMode, FLEE_MODE)){
+        Set<BaseEntity> tmpPreds = new HashSet<>();
+
+        for (BaseEntity ent : newPredatorEntities){
+            if (!mPrevPredatorBatch.contains(ent)){
+                tmpPreds.add(ent);
+            }
+        }
+
+        newPredatorEntities = tmpPreds;
+
+        if (newPredatorEntities.size() > 0 && !Objects.equals(mMode, FLEE_MODE)){
             mMode = FLEE_MODE;
-        }else if (mFleeDist > mMaxFleeDist - 10){
-            mMode = EAT_MODE;
-            mPredators = new HashSet<>();
-            mFleeDist = 0;
+        }
+
+        if (mCenter.getX().intValue() < 0 || mCenter.getX().intValue() > 1900
+                || mCenter.getY().intValue() < 0 || mCenter.getY().intValue() > 900){
+            int kk = 0;
         }
 
         if (mMode.equals(FLEE_MODE)){
@@ -266,11 +280,6 @@ public class Herbivore extends Actor implements Tickable, Edible {
             }
         }
 
-
-
-
-
-
         if(MOVE_STATE.equals(mPositionState)){
             Point prevPos = mCenter;
 
@@ -279,9 +288,21 @@ public class Herbivore extends Actor implements Tickable, Edible {
             if (mMode.equals(FLEE_MODE)){
                 mFleeDist += calcDist(prevPos.getX().doubleValue(), prevPos.getY().doubleValue(),
                         mCenter.getX().doubleValue(), mCenter.getY().doubleValue());
+
+                if (mFleeDist > mMaxFleeDist - 10){
+                    mMode = EAT_MODE;
+                    mPredators = new HashSet<>();
+                    mPrevPredatorBatch = new HashSet<>();
+                    mFleeDist = 0;
+                }
             }
         }else{
             rotate(frameTime);
+
+            if (mPositionState.equals(MOVE_STATE)){
+                mPrevPredatorBatch = mPredators;
+                mPredators = new HashSet<>();
+            }
         }
 
         grid.placeEntity(this);
@@ -334,19 +355,19 @@ public class Herbivore extends Actor implements Tickable, Edible {
         g.setLineWidth(2);
         g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
 
-        g.setStroke(mPredators.size() > 0 ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
         g.setLineWidth(2);
         g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
 
-        g.setStroke(mPredators.size() > 0 ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
         g.setLineWidth(2);
         g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewClock.getX2(), mViewClock.getY2());
 
-        g.setStroke(mPredators.size() > 0 ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
         g.setLineWidth(2);
         g.strokeLine(mViewCounter.getX1(), mViewCounter.getY1(), mViewCounter.getX2(), mViewCounter.getY2());
 
-        g.setStroke(mPredators.size() > 0 ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
         g.setLineWidth(2);
         g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
 

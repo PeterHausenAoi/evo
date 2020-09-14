@@ -32,6 +32,7 @@ public class Carnivore extends Actor {
         mMaxHealth = Math.random() * 120 + 100;
         mCurrHealth = mMaxHealth;
         mStarvationRate = Math.random() * 10 + 5;
+//        mStarvationRate = 1;
 
         double viewX = Math.random() * 1900;
         double viewY = Math.random() * 900;
