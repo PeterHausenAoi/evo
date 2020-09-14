@@ -2,6 +2,7 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
+import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
@@ -53,6 +54,9 @@ abstract public class Actor extends BaseEntity implements Movable {
 
     protected Point mVect;
 
+    protected double mFoodPriority;
+    protected double mFoodWeight;
+
     protected Set<Class<? extends BaseEntity>> mFoodClazzez;
     protected Set<Class<? extends BaseEntity>> mPredatorClazzez;
 
@@ -60,6 +64,18 @@ abstract public class Actor extends BaseEntity implements Movable {
         super(x, y, width, height);
         initFoodClazzez();
         initPredatorClazzez();
+    }
+
+    protected boolean isFoodPrio(){
+        double hunger = 1.0 - getHealthPerc();
+        double weightedHunger = hunger * mFoodWeight;
+        Log.doLog(TAG, weightedHunger + " vs " + mFoodPriority);
+        return false;
+        //        return weightedHunger > mFoodPriority;
+    }
+
+    protected double getHealthPerc(){
+        return mCurrHealth / mMaxHealth;
     }
 
     protected BaseEntity getTarget(Grid grid){
@@ -75,6 +91,8 @@ abstract public class Actor extends BaseEntity implements Movable {
                 new Point(mViewCounter.getP2().getX(), mViewCounter.getP2().getY())
                 )
         );
+
+        ents.addAll(grid.getRadiusEntities(mCenter, mAudioRadius));
 
         double minDist = 0;
         BaseEntity minEnt = null;
@@ -97,7 +115,16 @@ abstract public class Actor extends BaseEntity implements Movable {
         return minEnt;
     }
 
-    protected Set<BaseEntity> getPredators(Grid grid){
+    protected Set<BaseEntity> getRadiusPredators(Grid grid){
+        Set<BaseEntity> ents = new HashSet<>();
+        ents.addAll(grid.getRadiusEntities(mCenter, mAudioRadius));
+
+        return ents.stream().filter(baseEntity -> !baseEntity.equals(this) && isValidPredator(baseEntity.getClass()))
+                .collect(Collectors.toSet());
+    }
+
+
+    protected Set<BaseEntity> getConePredators(Grid grid){
         Set<BaseEntity> ents = new HashSet<>();
         ents.addAll(grid.getConeEntities(mCenter,
                 new Point(mViewFocus.getP2().getX(), mViewFocus.getP2().getY()),

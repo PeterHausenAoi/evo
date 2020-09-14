@@ -4,7 +4,6 @@ import javafx.scene.canvas.GraphicsContext;
 import main.java.com.github.PeterHausenAoi.evo.entities.Carnivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Herbivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Food;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,13 +49,13 @@ public class EvoManager {
         mFoods = new ArrayList<>();
         mCarnivores = new ArrayList<>();
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 3; i++) {
             Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
             mHerbivores.add(herb);
             mGrid.placeEntity(herb);
         }
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 15; i++) {
             Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
             mCarnivores.add(car);
             mGrid.placeEntity(car);

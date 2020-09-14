@@ -16,8 +16,10 @@ public class Herbivore extends Actor implements Tickable, Edible {
     private static final Color BOX_COLOR = Color.PURPLE;
     private double mNutrient;
 
-    private Set<BaseEntity> mPrevPredatorBatch = new HashSet<>();
-    private Set<BaseEntity> mPredators = new HashSet<>();
+    private Set<BaseEntity> mConePredators = new HashSet<>();
+
+    private Set<BaseEntity> mPrevRadiusPredatorBatch = new HashSet<>();
+    private Set<BaseEntity> mRadiusPredators = new HashSet<>();
 
     public Herbivore(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -26,21 +28,32 @@ public class Herbivore extends Actor implements Tickable, Edible {
         mHeight = height;
 
         mAnglePerSec = Math.random() * 500 + 1;
-//        mAnglePerSec = 100;
+        mAnglePerSec = 100;
 
         mSpeed = Math.random() * 500 + 50;
-//        mSpeed = 100;
+        mSpeed = 100;
 
         mCurrangle = 0.0;
-        mViewDistance = Math.random() * 450 + 50;
+//        mViewDistance = Math.random() * 450 + 50;
+        mViewDistance = 200;
         mViewAngle = Math.random() * 160 + 10;
 
         mMaxHealth = Math.random() * 120 + 10;
-//        mMaxHealth = 200;
+        mMaxHealth = 200;
         mCurrHealth = mMaxHealth;
 
+        mFoodPriority = Math.random();
+        mFoodWeight = Math.random();
+
         mStarvationRate = Math.random() * 10 + 5;
-//        mStarvationRate = 1;
+        mStarvationRate = 1;
+        mNutrient = Math.random() * 10 + 10;
+
+
+        mAudioRadius = Math.random() * 200 + 10;
+        mAudioRadius = 150;
+        mMaxFleeDist = Math.random() * 900 + 100;
+//        mMaxFleeDist = 1000;
 
         double viewX = Math.random() * 1900;
         double viewY = Math.random() * 900;
@@ -67,10 +80,6 @@ public class Herbivore extends Actor implements Tickable, Edible {
         mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
                 p.getX().doubleValue(), p.getY().doubleValue());
 
-        mNutrient = Math.random() * 10 + 10;
-
-        mMaxFleeDist = Math.random() * 900 + 100;
-//        mMaxFleeDist = 1000;
     }
 
     protected Point getInvertedVector(BaseEntity newPredatorEntity){
@@ -98,25 +107,21 @@ public class Herbivore extends Actor implements Tickable, Edible {
         }
 
         BaseEntity newTargetEntity = getTarget(grid);
-        Set<BaseEntity> newPredatorEntities = getPredators(grid);
 
-        Set<BaseEntity> tmpPreds = new HashSet<>();
+        Set<BaseEntity> newConePredatorEntities = getConePredators(grid);
+        mRadiusPredators = getRadiusPredators(grid);
 
-        for (BaseEntity ent : newPredatorEntities){
-            if (!mPrevPredatorBatch.contains(ent)){
-                tmpPreds.add(ent);
-            }
-        }
-
-        newPredatorEntities = tmpPreds;
-
-        if (newPredatorEntities.size() > 0 && !Objects.equals(mMode, FLEE_MODE)){
+        if ((newConePredatorEntities.size() > 0 || mRadiusPredators.size() > 0) && !Objects.equals(mMode, FLEE_MODE)){
             mMode = FLEE_MODE;
         }
 
-        if (mCenter.getX().intValue() < 0 || mCenter.getX().intValue() > 1900
-                || mCenter.getY().intValue() < 0 || mCenter.getY().intValue() > 900){
-            int kk = 0;
+        if (isFoodPrio()){
+            Log.doLog(TAG, "FORCE FEED");
+            mMode = EAT_MODE;
+            mConePredators = new HashSet<>();
+            mRadiusPredators = new HashSet<>();
+            mPrevRadiusPredatorBatch = new HashSet<>();
+            mFleeDist = 0;
         }
 
         if (mMode.equals(FLEE_MODE)){
@@ -197,17 +202,31 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
                 targetAcquired = true;
 
-            }else if (newPredatorEntities.size() > 0){
-                int prevSize = mPredators.size();
-                mPredators.addAll(newPredatorEntities);
+            }else if (newConePredatorEntities.size() > 0 || mRadiusPredators.size() > 0){
+                int prevSize = mConePredators.size();
+                mConePredators.addAll(newConePredatorEntities);
 
-                if (prevSize != mPredators.size()){
+                Set<BaseEntity> sum = new HashSet<>();
+                sum.addAll(mPrevRadiusPredatorBatch);
+                sum.addAll(mRadiusPredators);
+
+                boolean radiusDiff = sum.size() != mPrevRadiusPredatorBatch.size()
+                        || sum.size() != mRadiusPredators.size()
+                        || mPrevRadiusPredatorBatch.size() != mRadiusPredators.size();
+
+                if (prevSize != mConePredators.size() || radiusDiff){
                     targetAcquired = true;
 
                     double x = 0;
                     double y = 0;
 
-                    for (BaseEntity pred : mPredators){
+                    for (BaseEntity pred : mConePredators){
+                        Point newVect = getInvertedVector(pred);
+                        x += newVect.getX().doubleValue();
+                        y += newVect.getY().doubleValue();
+                    }
+
+                    for (BaseEntity pred : mRadiusPredators){
                         Point newVect = getInvertedVector(pred);
                         x += newVect.getX().doubleValue();
                         y += newVect.getY().doubleValue();
@@ -221,14 +240,12 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
                     Point newVect = new Point(vectX, vectY);
 
-                    double s = calcDist(0,0, newVect.getX().doubleValue(), newVect.getY().doubleValue());
-
-                    Log.doLog(TAG, mPredators.size() + " - " + String.valueOf(s));
-
                     mTarget = new Point(mCenter.getX().doubleValue() + newVect.getX().doubleValue(),
                             mCenter.getY().doubleValue() + newVect.getY().doubleValue());
 
                     mTargetEntity = null;
+
+                    mPrevRadiusPredatorBatch = mRadiusPredators;
                 }
             }
 
@@ -248,6 +265,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
         }else{
             boolean targetAcquired = false;
+            boolean outOfBounds = false;
 
             if (newTargetEntity != mTargetEntity){
                 if (newTargetEntity == null){
@@ -260,7 +278,16 @@ public class Herbivore extends Actor implements Tickable, Edible {
                 }
             }
 
-            if(mTarget == null || isTargetReached() || targetAcquired){
+            if (mTarget != null) {
+                outOfBounds = mCenter.getX().intValue() < 0 || mCenter.getX().intValue() > 1900
+                        || mCenter.getY().intValue() < 0 || mCenter.getY().intValue() > 900;
+            }
+
+            if (outOfBounds){
+                int ddd = 0;
+            }
+
+            if(mTarget == null || isTargetReached() || targetAcquired || outOfBounds){
                 if (newTargetEntity == null || isTargetReached()){
                     mTarget = new Point(Math.random() * grid.getWidth().doubleValue(), Math.random() * grid.getHeight().doubleValue());
                     mTargetEntity = null;
@@ -291,8 +318,9 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
                 if (mFleeDist > mMaxFleeDist - 10){
                     mMode = EAT_MODE;
-                    mPredators = new HashSet<>();
-                    mPrevPredatorBatch = new HashSet<>();
+                    mConePredators = new HashSet<>();
+                    mRadiusPredators = new HashSet<>();
+                    mPrevRadiusPredatorBatch = new HashSet<>();
                     mFleeDist = 0;
                 }
             }
@@ -300,8 +328,8 @@ public class Herbivore extends Actor implements Tickable, Edible {
             rotate(frameTime);
 
             if (mPositionState.equals(MOVE_STATE)){
-                mPrevPredatorBatch = mPredators;
-                mPredators = new HashSet<>();
+                mConePredators = new HashSet<>();
+                mRadiusPredators = new HashSet<>();
             }
         }
 
@@ -340,7 +368,6 @@ public class Herbivore extends Actor implements Tickable, Edible {
         double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
 
-
         double hpBar = 50.0;
         g.setFill(Color.DARKRED);
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar, 10);
@@ -349,7 +376,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar * mCurrHealth / mMaxHealth, 10);
 
         g.setFill(Color.YELLOW);
-        g.fillText(String.valueOf(mPredators.size()), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
+        g.fillText(mConePredators.size() + " - " + mRadiusPredators.size(), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
 
         g.setStroke(Color.AQUA);
         g.setLineWidth(2);
@@ -370,6 +397,10 @@ public class Herbivore extends Actor implements Tickable, Edible {
         g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
         g.setLineWidth(2);
         g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+
+        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+        g.setLineWidth(2);
+        g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
 
         g.setStroke(Color.PINK);
         g.setLineWidth(2);

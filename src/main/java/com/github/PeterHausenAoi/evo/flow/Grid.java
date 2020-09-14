@@ -72,6 +72,57 @@ public class Grid implements Drawable {
         }
     }
 
+    public List<BaseEntity> getRadiusEntities(Point p, Double radius) {
+        int topLeftX = p.getX().intValue() - radius.intValue();
+        int topLeftY = p.getY().intValue() - radius.intValue();
+        int botRightX = p.getX().intValue() + radius.intValue();
+        int botRightY = p.getY().intValue() + radius.intValue();
+
+        int startX = (topLeftX / mCellWidth) - 1;
+        if(startX < 0){
+            startX = 0;
+        }
+
+        int endX = (botRightX / mCellWidth) + 1;
+        if(endX >= mColcount){
+            endX = mColcount - 1;
+        }
+
+        int startY = (topLeftY / mCellWidth) - 1;
+        if(startY < 0){
+            startY = 0;
+        }
+
+        int endY = (botRightY / mCellWidth) + 1;
+        if(endY >= mRowCount){
+            endY = mRowCount - 1;
+        }
+
+        List<BaseEntity> ents = new ArrayList<>();
+
+        for (int x = startX; x <= endX; x++){
+            for (int y = startY; y <= endY; y++){
+                GridCell cell = mGrid[x][y];
+
+                for (BaseEntity ent : cell.getEntities()){
+
+                    for (Point point : ent.getPoints()){
+                        double dist = Math.sqrt(
+                                Math.pow(point.getX().doubleValue() - p.getX().doubleValue(), 2)
+                                + Math.pow(point.getY().doubleValue() - p.getY().doubleValue(), 2)
+                        );
+
+                        if (dist < radius){
+                            ents.add(ent);
+                        }
+                    }
+                }
+            }
+        }
+
+        return ents;
+    }
+
     public List<BaseEntity> getConeEntities(Point p1, Point p2, Point p3){
         int topLeftX;
         int topLeftY;

@@ -23,7 +23,7 @@ public class Carnivore extends Actor {
 
         mAnglePerSec = Math.random() * 500 + 1;
         mSpeed = Math.random() * 500 + 50;
-//        mSpeed = 10;
+        mSpeed = 10;
 
         mCurrangle = 0.0;
         mViewDistance = Math.random() * 450 + 50;
@@ -32,7 +32,9 @@ public class Carnivore extends Actor {
         mMaxHealth = Math.random() * 120 + 100;
         mCurrHealth = mMaxHealth;
         mStarvationRate = Math.random() * 10 + 5;
-//        mStarvationRate = 1;
+        mStarvationRate = 1;
+
+        mAudioRadius = Math.random() * 200 + 10;
 
         double viewX = Math.random() * 1900;
         double viewY = Math.random() * 900;
@@ -188,6 +190,10 @@ public class Carnivore extends Actor {
         g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
         g.setLineWidth(2);
         g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+
+        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+        g.setLineWidth(2);
+        g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
 
         g.setStroke(Color.PINK);
         g.setLineWidth(2);
