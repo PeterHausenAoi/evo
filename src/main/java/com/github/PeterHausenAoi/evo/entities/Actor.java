@@ -3,7 +3,6 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
@@ -11,7 +10,7 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.stream.Collectors;
 
-abstract public class Actor extends BaseEntity implements Movable {
+abstract public class Actor extends MovingEntity implements Movable {
     private static final String TAG = Actor.class.getSimpleName();
 
     protected static final String EAT_MODE = "EAT_MODE";
@@ -21,6 +20,8 @@ abstract public class Actor extends BaseEntity implements Movable {
 
     protected static final String ROTATION_STATE = "ROTATION_STATE";
     protected Point mTarget;
+
+    protected int mGen;
 
     protected int mWidth;
     protected int mHeight;
@@ -73,6 +74,7 @@ abstract public class Actor extends BaseEntity implements Movable {
         mStarvationRate = builder.getStarvationRate();
         mFoodPriority = builder.getFoodPriority();
         mFoodWeight = builder.getFoodWeight();
+        mGen = builder.getGen();
 
         mCurrHealth = mMaxHealth;
         mLifeTime = 0;
@@ -357,10 +359,13 @@ abstract public class Actor extends BaseEntity implements Movable {
         mContainers.removeAll(delList);
     }
 
+    public int getGen() {
+        return mGen;
+    }
+
     protected Set<Class<? extends BaseEntity>> getFoodClazzez() {
         return mFoodClazzez;
     }
-
     public Set<Class<? extends BaseEntity>> getPredatorClazzez() {
         return mPredatorClazzez;
     }
@@ -376,6 +381,7 @@ abstract public class Actor extends BaseEntity implements Movable {
     }
 
     public static class ActorBuilder{
+        protected int gen;
         protected int x;
         protected int y;
         protected int mWidth;
@@ -393,6 +399,14 @@ abstract public class Actor extends BaseEntity implements Movable {
         protected double mFoodWeight;
 
         public ActorBuilder() {
+        }
+
+        public int getGen() {
+            return gen;
+        }
+
+        public void setGen(int gen) {
+            this.gen = gen;
         }
 
         public int getX() {

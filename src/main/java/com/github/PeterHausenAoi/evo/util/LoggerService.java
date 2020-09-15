@@ -24,7 +24,7 @@ public class LoggerService extends AbstractService<LogMessage>{
         return mInstance;
     }
 
-    private SimpleDateFormat mSdf = new SimpleDateFormat("yyyy.mm.dd hh:MM:ss");
+    private SimpleDateFormat mSdf = new SimpleDateFormat("yyyy.MM.dd.HH:mm:ss");
 
     public static void log(String tag, String msg){
         getInstance().addMsg(new LogMessage(tag, msg));

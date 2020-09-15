@@ -24,13 +24,24 @@ public class EvoManager {
     private long mSubFrameTime;
     private long mTickCount;
 
-    private long mFoodSpawnTime = 40;
+    private long mFoodSpawnTickCount = 30 * 2;
+
+    private long mBaseHerbSpawnTime = 30 * 10;
+    private long mBaseCarnSpawnTime = 30 * 20;
+    private long mBaseHunterSpawnTime = 30 * 50;
+
+    private long mCurrHerbSpawnTime = mBaseHerbSpawnTime;
+    private long mCurrCarnSpawnTime = mBaseCarnSpawnTime;
+    private long mCurrHunterSpawnTime = mBaseHunterSpawnTime;
 
     private Grid mGrid;
 
     List<Herbivore> mHerbivores;
     List<Carnivore> mCarnivores;
     List<Food> mFoods;
+
+    EvolutionChamber<Herbivore> mHerbCh;
+    EvolutionChamber<Carnivore> mCarnCh;
 
     private GraphicsContext mGraphics;
 
@@ -51,13 +62,14 @@ public class EvoManager {
         mFoods = new ArrayList<>();
         mCarnivores = new ArrayList<>();
 
-        EvolutionChamber<Herbivore> ch = new EvolutionChamber<>(Herbivore.getSpeciesDescriptor());
+        mHerbCh = new EvolutionChamber<>(Herbivore.getSpeciesDescriptor());
+        mCarnCh = new EvolutionChamber<>(Carnivore.getSpeciesDescriptor());
 
-        for (int i = 0; i < 50; i++) {
-            Herbivore herb = ch.getNextSpecimen();
-            mHerbivores.add(herb);
-            mGrid.placeEntity(herb);
-        }
+//        for (int i = 0; i < 50; i++) {
+//            Herbivore herb = mHerbCh.getNextSpecimen();
+//            mHerbivores.add(herb);
+//            mGrid.placeEntity(herb);
+//        }
 
 //        for (int i = 0; i < 3; i++) {
 //            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
@@ -75,15 +87,39 @@ public class EvoManager {
     private void tick(){
         for (Carnivore car : mCarnivores) {
             car.tick(mFrameTime, mGrid);
+
+            if (car.isDead()){
+                mCarnCh.addSpecimen(car);
+            }
         }
 
         mCarnivores = mCarnivores.stream().filter(car -> !car.isDead()).collect(Collectors.toList());
+        mCurrCarnSpawnTime = mCarnivores.size() == 0 ? mBaseCarnSpawnTime : mBaseCarnSpawnTime / mCarnivores.size();
 
         for (Herbivore herb : mHerbivores) {
             herb.tick(mFrameTime, mGrid);
+
+            if (herb.isDead()){
+                mHerbCh.addSpecimen(herb);
+            }
         }
 
         mHerbivores = mHerbivores.stream().filter(herb -> !herb.isDead()).collect(Collectors.toList());
+        mCurrHerbSpawnTime = mHerbivores.size() == 0 ? mBaseHerbSpawnTime : mBaseHerbSpawnTime / mHerbivores.size();
+    }
+
+    private void spawnHerbivore(){
+        Log.doLog(TAG, "spawnHerbivore");
+        Herbivore herb = mHerbCh.getNextSpecimen();
+        mHerbivores.add(herb);
+        mGrid.placeEntity(herb);
+    }
+
+    private void spawnCarnivore(){
+        Log.doLog(TAG, "spawnCarnivore");
+        Carnivore carn = mCarnCh.getNextSpecimen();
+        mCarnivores.add(carn);
+        mGrid.placeEntity(carn);
     }
 
     private void spawnFood(){
@@ -99,7 +135,11 @@ public class EvoManager {
         mFoods.add(f);
     }
 
+    long mHerbTickCount = 0;
+    long mCarnTickCount = 0;
+
     long curr = 0;
+
     public void step(long nanoDiff){
         long millidiff = nanoDiff / 1000000;
 
@@ -110,11 +150,24 @@ public class EvoManager {
         }
 
         mTickCount++;
+        mHerbTickCount++;
+        mCarnTickCount++;
 
-        if(mTickCount % (mFoodSpawnTime) == 0){
+        if(mTickCount % (mFoodSpawnTickCount) == 0){
             Log.doLog(TAG, "|" + (System.currentTimeMillis() - curr));
             curr = System.currentTimeMillis();
             spawnFood();
+        }
+
+
+        if(mHerbTickCount >= mCurrHerbSpawnTime){
+            spawnHerbivore();
+            mHerbTickCount = 0;
+        }
+
+        if(mCarnTickCount >= mCurrCarnSpawnTime){
+            spawnCarnivore();
+            mCarnTickCount = 0;
         }
 
         mSubFrameTime = 0;

@@ -39,22 +39,22 @@ public class Carnivore extends Actor {
         }
 
         Set<SpeciesParam> params = new HashSet<>();
-        params.add(new SpeciesParam("KEY_X", 0.0, 1900.0, true));
-        params.add(new SpeciesParam("KEY_Y", 0.0, 900.0, true));
-        params.add(new SpeciesParam("KEY_WIDTH", 20.0, 60.0, false));
-        params.add(new SpeciesParam("KEY_HEIGHT", 20.0, 110.0, false));
-        params.add(new SpeciesParam("KEY_ANGLEPERSEC", 1.0, 500.0, false));
-        params.add(new SpeciesParam("KEY_VIEWDISTANCE", 50.0, 500.0, false));
-        params.add(new SpeciesParam("KEY_VIEWANGLE", 20.0, 170.0, false));
-        params.add(new SpeciesParam("KEY_SPEED", 10.0, 1000.0, false));
-        params.add(new SpeciesParam("KEY_MAXFLEEDIST", 10.0, 1000.0, false));
-        params.add(new SpeciesParam("KEY_MAXHEALTH", 10.0, 200.0, false));
-        params.add(new SpeciesParam("KEY_AUDIORADIUS", 10.0, 500.0, false));
-        params.add(new SpeciesParam("KEY_STARVATIONRATE", 5.0, 50.0, false));
-        params.add(new SpeciesParam("KEY_FOODPRIORITY", 0.0, 1.0, false));
-        params.add(new SpeciesParam("KEY_FOODWEIGHT", 0.0, 1.0, false));
+        params.add(new SpeciesParam(KEY_X, 0.0, 1900.0, true));
+        params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
+        params.add(new SpeciesParam(KEY_WIDTH, 20.0, 60.0, false));
+        params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 110.0, false));
+        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 10.0, 600.0, false));
+        params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
+        params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 200.0, false));
+        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_STARVATIONRATE, 20.0, 50.0, false));
+        params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
+        params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
-        mSpeciesDescriptor = new SpeciesDescriptor<>(new CarnivoreBuilder(), params);
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new CarnivoreEntityBuilder(), params);
 
         return mSpeciesDescriptor;
     }
@@ -249,7 +249,7 @@ public class Carnivore extends Actor {
         props.put(KEY_FOODPRIORITY, mFoodPriority);
         props.put(KEY_FOODWEIGHT, mFoodWeight);
 
-        return new Specimen(mLifeTime.doubleValue(), props);
+        return new Specimen(mGen, mLifeTime.doubleValue(), props);
     }
 
     @Override
@@ -259,15 +259,15 @@ public class Carnivore extends Actor {
         double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
 
-//        g.setFill(Color.YELLOW);
-//        g.fillText(ver1 + " | " + ver2, mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
-
         double hpBar = 50.0;
         g.setFill(Color.DARKRED);
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar, 10);
 
         g.setFill(Color.DARKGREEN);
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar * mCurrHealth / mMaxHealth, 10);
+
+        g.setFill(Color.YELLOW);
+        g.fillText(String.valueOf(mGen), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
 
         g.setStroke(Color.AQUA);
         g.setLineWidth(2);
@@ -303,14 +303,19 @@ public class Carnivore extends Actor {
         return mPoints;
     }
 
-    public static class CarnivoreBuilder extends Actor.ActorBuilder implements EntityBuilder<Carnivore> {
+    public static class CarnivoreBuilder extends Actor.ActorBuilder {
         public CarnivoreBuilder() {
 
         }
+    }
+
+    public static class CarnivoreEntityBuilder implements EntityBuilder<Carnivore> {
 
         @Override
         public Carnivore buildEntity(Specimen specimen) {
-            setAnglePerSec(specimen.getProps().get(KEY_ANGLEPERSEC))
+            CarnivoreBuilder builder = new CarnivoreBuilder();
+
+            builder.setAnglePerSec(specimen.getProps().get(KEY_ANGLEPERSEC))
                     .setX(specimen.getProps().get(KEY_X).intValue())
                     .setY(specimen.getProps().get(KEY_Y).intValue())
                     .setHeight(specimen.getProps().get(KEY_HEIGHT).intValue())
@@ -323,9 +328,10 @@ public class Carnivore extends Actor {
                     .setViewAngle(specimen.getProps().get(KEY_VIEWANGLE))
                     .setViewDistance(specimen.getProps().get(KEY_VIEWDISTANCE))
                     .setSpeed(specimen.getProps().get(KEY_SPEED))
-                    .setMaxHealth(specimen.getProps().get(KEY_MAXHEALTH));
+                    .setMaxHealth(specimen.getProps().get(KEY_MAXHEALTH))
+                    .setGen(specimen.getGen());
 
-            return new Carnivore(this);
+            return new Carnivore(builder);
         }
     }
 }

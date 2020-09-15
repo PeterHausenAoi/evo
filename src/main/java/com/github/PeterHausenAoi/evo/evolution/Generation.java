@@ -18,6 +18,11 @@ public class Generation<T extends Actor> {
         mCurrInd = 0;
     }
 
+    public Generation(Integer gen, List<T> specimens) {
+        this.mGen = gen;
+        this.mSpecimens = specimens;
+    }
+
     public Integer getGen() {
         return mGen;
     }
