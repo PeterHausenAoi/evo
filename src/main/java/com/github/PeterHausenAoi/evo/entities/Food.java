@@ -24,7 +24,7 @@ public final class Food extends BaseEntity implements Edible{
         mWidth = width;
         mHeight = height;
 
-        mNutrient = Math.random() * 10 + 10;
+        mNutrient = Math.random() * 50 + 10;
     }
 
     @Override

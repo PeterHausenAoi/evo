@@ -4,6 +4,8 @@ import javafx.scene.canvas.GraphicsContext;
 import main.java.com.github.PeterHausenAoi.evo.entities.Carnivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Herbivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Food;
+import main.java.com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
+import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,7 @@ public class EvoManager {
     private long mSubFrameTime;
     private long mTickCount;
 
-    private long mFoodSpawnTime = 5;
+    private long mFoodSpawnTime = 40;
 
     private Grid mGrid;
 
@@ -49,17 +51,25 @@ public class EvoManager {
         mFoods = new ArrayList<>();
         mCarnivores = new ArrayList<>();
 
-        for (int i = 0; i < 3; i++) {
-            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
+        EvolutionChamber<Herbivore> ch = new EvolutionChamber<>(Herbivore.getSpeciesDescriptor());
+
+        for (int i = 0; i < 50; i++) {
+            Herbivore herb = ch.getNextSpecimen();
             mHerbivores.add(herb);
             mGrid.placeEntity(herb);
         }
 
-        for (int i = 0; i < 15; i++) {
-            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
-            mCarnivores.add(car);
-            mGrid.placeEntity(car);
-        }
+//        for (int i = 0; i < 3; i++) {
+//            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
+//            mHerbivores.add(herb);
+//            mGrid.placeEntity(herb);
+//        }
+
+//        for (int i = 0; i < 15; i++) {
+//            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+//            mCarnivores.add(car);
+//            mGrid.placeEntity(car);
+//        }
     }
 
     private void tick(){
@@ -77,9 +87,9 @@ public class EvoManager {
     }
 
     private void spawnFood(){
-        if (mFoods.size() > mHerbivores.size() * 0.5){
-            return;
-        }
+//        if (mFoods.size() > mHerbivores.size() * 0.5){
+//            return;
+//        }
 
 //        Log.doLog(TAG, "spawnFood");
         Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 50,50);
@@ -89,6 +99,7 @@ public class EvoManager {
         mFoods.add(f);
     }
 
+    long curr = 0;
     public void step(long nanoDiff){
         long millidiff = nanoDiff / 1000000;
 
@@ -101,6 +112,8 @@ public class EvoManager {
         mTickCount++;
 
         if(mTickCount % (mFoodSpawnTime) == 0){
+            Log.doLog(TAG, "|" + (System.currentTimeMillis() - curr));
+            curr = System.currentTimeMillis();
             spawnFood();
         }
 

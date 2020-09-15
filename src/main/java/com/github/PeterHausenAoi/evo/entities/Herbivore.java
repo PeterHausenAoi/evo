@@ -2,6 +2,10 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import main.java.com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
+import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
+import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
+import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.flow.Tickable;
@@ -14,6 +18,51 @@ public class Herbivore extends Actor implements Tickable, Edible {
     private static final String TAG = Herbivore.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.PURPLE;
+
+    private static final String KEY_X = "KEY_X";
+    private static final String KEY_Y = "KEY_Y";
+    private static final String KEY_WIDTH = "KEY_WIDTH";
+    private static final String KEY_HEIGHT = "KEY_HEIGHT";
+    private static final String KEY_ANGLEPERSEC = "KEY_ANGLEPERSEC";
+    private static final String KEY_VIEWDISTANCE = "KEY_VIEWDISTANCE";
+    private static final String KEY_VIEWANGLE = "KEY_VIEWANGLE";
+    private static final String KEY_SPEED = "KEY_SPEED";
+    private static final String KEY_FLEEDIST = "KEY_FLEEDIST";
+    private static final String KEY_MAXFLEEDIST = "KEY_MAXFLEEDIST";
+    private static final String KEY_MAXHEALTH = "KEY_MAXHEALTH";
+    private static final String KEY_AUDIORADIUS = "KEY_AUDIORADIUS";
+    private static final String KEY_STARVATIONRATE = "KEY_STARVATIONRATE";
+    private static final String KEY_FOODPRIORITY = "KEY_FOODPRIORITY";
+    private static final String KEY_FOODWEIGHT = "KEY_FOODWEIGHT";
+
+    private static SpeciesDescriptor<Herbivore> mSpeciesDescriptor;
+
+    public static synchronized SpeciesDescriptor<Herbivore> getSpeciesDescriptor(){
+        if (mSpeciesDescriptor != null){
+            return mSpeciesDescriptor;
+        }
+
+        Set<SpeciesParam> params = new HashSet<>();
+        params.add(new SpeciesParam("KEY_X", 0.0, 1900.0, true));
+        params.add(new SpeciesParam("KEY_Y", 0.0, 900.0, true));
+        params.add(new SpeciesParam("KEY_WIDTH", 10.0, 42.0, false));
+        params.add(new SpeciesParam("KEY_HEIGHT", 10.0, 42.0, false));
+        params.add(new SpeciesParam("KEY_ANGLEPERSEC", 1.0, 500.0, false));
+        params.add(new SpeciesParam("KEY_VIEWDISTANCE", 50.0, 500.0, false));
+        params.add(new SpeciesParam("KEY_VIEWANGLE", 20.0, 170.0, false));
+        params.add(new SpeciesParam("KEY_SPEED", 10.0, 1000.0, false));
+        params.add(new SpeciesParam("KEY_MAXFLEEDIST", 10.0, 1000.0, false));
+        params.add(new SpeciesParam("KEY_MAXHEALTH", 10.0, 150.0, false));
+        params.add(new SpeciesParam("KEY_AUDIORADIUS", 10.0, 250.0, false));
+        params.add(new SpeciesParam("KEY_STARVATIONRATE", 5.0, 50.0, false));
+        params.add(new SpeciesParam("KEY_FOODPRIORITY", 0.0, 1.0, false));
+        params.add(new SpeciesParam("KEY_FOODWEIGHT", 0.0, 1.0, false));
+
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new HerbivoreBuilder(), params);
+
+        return mSpeciesDescriptor;
+    }
+
     private double mNutrient;
 
     private Set<BaseEntity> mConePredators = new HashSet<>();
@@ -21,37 +70,66 @@ public class Herbivore extends Actor implements Tickable, Edible {
     private Set<BaseEntity> mPrevRadiusPredatorBatch = new HashSet<>();
     private Set<BaseEntity> mRadiusPredators = new HashSet<>();
 
+    public Herbivore(ActorBuilder builder) {
+        super(builder);
+        mNutrient = Math.random() * 20 + 20;
+
+        double viewX = Math.random() * 1900;
+        double viewY = Math.random() * 900;
+
+        double targetX = (viewX - mCenter.getX().doubleValue());
+        double targetY = (viewY - mCenter.getY().doubleValue());
+
+        double dist = Math.sqrt(Math.pow(targetX, 2) + Math.pow(targetY, 2));
+        double ratio = dist / mViewDistance;
+
+        double testX = targetX / ratio;
+        double testY = targetY / ratio;
+
+        mViewFocus = new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+                mCenter.getX().doubleValue() + testX, mCenter.getY().doubleValue() + testY);
+
+        Point p = rotatePoint(new Point(mViewFocus.getX2(), mViewFocus.getY2()), new Point(mViewFocus.getX1(), mViewFocus.getY1()), mViewAngle / 2);
+
+        mViewClock = new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+                p.getX().doubleValue(), p.getY().doubleValue());
+
+        p = rotatePoint(new Point(mViewFocus.getX2(), mViewFocus.getY2()), new Point(mViewFocus.getX1(), mViewFocus.getY1()), 360 - mViewAngle / 2 );
+
+        mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+                p.getX().doubleValue(), p.getY().doubleValue());
+
+        mDead = false;
+    }
+
     public Herbivore(int x, int y, int width, int height) {
         super(x, y, width, height);
 
-        mWidth = width;
-        mHeight = height;
-
         mAnglePerSec = Math.random() * 500 + 1;
-        mAnglePerSec = 100;
+//        mAnglePerSec = 100;
 
         mSpeed = Math.random() * 500 + 50;
-        mSpeed = 100;
+//        mSpeed = 100;
 
         mCurrangle = 0.0;
-//        mViewDistance = Math.random() * 450 + 50;
-        mViewDistance = 200;
+        mViewDistance = Math.random() * 450 + 50;
+//        mViewDistance = 200;
         mViewAngle = Math.random() * 160 + 10;
 
         mMaxHealth = Math.random() * 120 + 10;
-        mMaxHealth = 200;
+//        mMaxHealth = 200;
         mCurrHealth = mMaxHealth;
 
         mFoodPriority = Math.random();
         mFoodWeight = Math.random();
 
         mStarvationRate = Math.random() * 10 + 5;
-        mStarvationRate = 1;
+//        mStarvationRate = 1;
         mNutrient = Math.random() * 10 + 10;
 
 
         mAudioRadius = Math.random() * 200 + 10;
-        mAudioRadius = 150;
+//        mAudioRadius = 150;
         mMaxFleeDist = Math.random() * 900 + 100;
 //        mMaxFleeDist = 1000;
 
@@ -100,6 +178,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
     @Override
     public void tick(long frameTime, Grid grid) {
+        mLifeTime++;
         eat();
 
         if(starve(frameTime)){
@@ -115,8 +194,8 @@ public class Herbivore extends Actor implements Tickable, Edible {
             mMode = FLEE_MODE;
         }
 
-        if (isFoodPrio()){
-            Log.doLog(TAG, "FORCE FEED");
+        if (isFoodPriority()){
+//            Log.doLog(TAG, "FORCE FEED");
             mMode = EAT_MODE;
             mConePredators = new HashSet<>();
             mRadiusPredators = new HashSet<>();
@@ -352,6 +431,26 @@ public class Herbivore extends Actor implements Tickable, Edible {
     }
 
     @Override
+    public Specimen toSpecimen() {
+        Map<String, Double> props = new HashMap<>();
+
+        props.put(KEY_WIDTH, (double)mWidth);
+        props.put(KEY_HEIGHT, (double)mHeight);
+        props.put(KEY_ANGLEPERSEC, mAnglePerSec);
+        props.put(KEY_VIEWDISTANCE, mViewDistance);
+        props.put(KEY_VIEWANGLE, mViewAngle);
+        props.put(KEY_SPEED, mSpeed);
+        props.put(KEY_MAXFLEEDIST, mMaxFleeDist);
+        props.put(KEY_MAXHEALTH, mMaxHealth);
+        props.put(KEY_AUDIORADIUS, mAudioRadius);
+        props.put(KEY_STARVATIONRATE, mStarvationRate);
+        props.put(KEY_FOODPRIORITY, mFoodPriority);
+        props.put(KEY_FOODWEIGHT, mFoodWeight);
+
+        return new Specimen(mLifeTime.doubleValue(), props);
+    }
+
+    @Override
     public Set<Class<? extends BaseEntity>> getFoodClazzez() {
         return mFoodClazzez;
     }
@@ -432,5 +531,31 @@ public class Herbivore extends Actor implements Tickable, Edible {
         }
 
         mContainers.clear();
+    }
+
+    public static class HerbivoreBuilder extends Actor.ActorBuilder implements EntityBuilder<Herbivore>{
+        public HerbivoreBuilder() {
+
+        }
+
+        @Override
+        public Herbivore buildEntity(Specimen specimen) {
+            setAnglePerSec(specimen.getProps().get(KEY_ANGLEPERSEC))
+            .setX(specimen.getProps().get(KEY_X).intValue())
+            .setY(specimen.getProps().get(KEY_Y).intValue())
+            .setHeight(specimen.getProps().get(KEY_HEIGHT).intValue())
+            .setWidth(specimen.getProps().get(KEY_WIDTH).intValue())
+            .setAudioRadius(specimen.getProps().get(KEY_AUDIORADIUS))
+            .setFoodPriority(specimen.getProps().get(KEY_FOODPRIORITY))
+            .setFoodWeight(specimen.getProps().get(KEY_FOODWEIGHT))
+            .setMaxFleeDist(specimen.getProps().get(KEY_MAXFLEEDIST))
+            .setStarvationRate(specimen.getProps().get(KEY_STARVATIONRATE))
+            .setViewAngle(specimen.getProps().get(KEY_VIEWANGLE))
+            .setViewDistance(specimen.getProps().get(KEY_VIEWDISTANCE))
+            .setSpeed(specimen.getProps().get(KEY_SPEED))
+            .setMaxHealth(specimen.getProps().get(KEY_MAXHEALTH));
+
+            return new Herbivore(this);
+        }
     }
 }

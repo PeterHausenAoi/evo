@@ -27,11 +27,12 @@ abstract public class BaseEntity implements Collidable, Drawable {
     protected List<GridCell> mContainers;
 
     public BaseEntity(int x, int y, int width, int height) {
-        mTopLeft = new Point(x,y);
-        mTopRight = new Point(x + width, y);
-        mBotLeft = new Point(x,y + height);
-        mBotRight = new Point(x + width,y + height);
-        mCenter = new Point(x + width / 2, y + height / 2);
+        mCenter = new Point(x, y);
+
+        mTopLeft = new Point(x - width / 2, y - height / 2);
+        mTopRight = new Point(x + width / 2, y - height / 2);
+        mBotLeft = new Point(x - width / 2, y + height / 2);
+        mBotRight = new Point(x + width / 2, y + height / 2);
 
         mPoints = new ArrayList<>();
         mPoints.add(mTopLeft);

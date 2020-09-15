@@ -2,18 +2,94 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import main.java.com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
+import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
+import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
+import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 
 import java.awt.geom.Line2D;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Carnivore extends Actor {
     private static final String TAG = Carnivore.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.BLUE;
+
+    private static final String KEY_X = "KEY_X";
+    private static final String KEY_Y = "KEY_Y";
+    private static final String KEY_WIDTH = "KEY_WIDTH";
+    private static final String KEY_HEIGHT = "KEY_HEIGHT";
+    private static final String KEY_ANGLEPERSEC = "KEY_ANGLEPERSEC";
+    private static final String KEY_VIEWDISTANCE = "KEY_VIEWDISTANCE";
+    private static final String KEY_VIEWANGLE = "KEY_VIEWANGLE";
+    private static final String KEY_SPEED = "KEY_SPEED";
+    private static final String KEY_MAXFLEEDIST = "KEY_MAXFLEEDIST";
+    private static final String KEY_MAXHEALTH = "KEY_MAXHEALTH";
+    private static final String KEY_AUDIORADIUS = "KEY_AUDIORADIUS";
+    private static final String KEY_STARVATIONRATE = "KEY_STARVATIONRATE";
+    private static final String KEY_FOODPRIORITY = "KEY_FOODPRIORITY";
+    private static final String KEY_FOODWEIGHT = "KEY_FOODWEIGHT";
+
+    private static SpeciesDescriptor<Carnivore> mSpeciesDescriptor;
+
+    public static synchronized SpeciesDescriptor<Carnivore> getSpeciesDescriptor(){
+        if (mSpeciesDescriptor != null){
+            return mSpeciesDescriptor;
+        }
+
+        Set<SpeciesParam> params = new HashSet<>();
+        params.add(new SpeciesParam("KEY_X", 0.0, 1900.0, true));
+        params.add(new SpeciesParam("KEY_Y", 0.0, 900.0, true));
+        params.add(new SpeciesParam("KEY_WIDTH", 20.0, 60.0, false));
+        params.add(new SpeciesParam("KEY_HEIGHT", 20.0, 110.0, false));
+        params.add(new SpeciesParam("KEY_ANGLEPERSEC", 1.0, 500.0, false));
+        params.add(new SpeciesParam("KEY_VIEWDISTANCE", 50.0, 500.0, false));
+        params.add(new SpeciesParam("KEY_VIEWANGLE", 20.0, 170.0, false));
+        params.add(new SpeciesParam("KEY_SPEED", 10.0, 1000.0, false));
+        params.add(new SpeciesParam("KEY_MAXFLEEDIST", 10.0, 1000.0, false));
+        params.add(new SpeciesParam("KEY_MAXHEALTH", 10.0, 200.0, false));
+        params.add(new SpeciesParam("KEY_AUDIORADIUS", 10.0, 500.0, false));
+        params.add(new SpeciesParam("KEY_STARVATIONRATE", 5.0, 50.0, false));
+        params.add(new SpeciesParam("KEY_FOODPRIORITY", 0.0, 1.0, false));
+        params.add(new SpeciesParam("KEY_FOODWEIGHT", 0.0, 1.0, false));
+
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new CarnivoreBuilder(), params);
+
+        return mSpeciesDescriptor;
+    }
+
+    private double mNutrient;
+
+    public Carnivore(ActorBuilder builder) {
+        super(builder);
+        mNutrient = Math.random() * 100 + 20;
+
+        double viewX = Math.random() * 1900;
+        double viewY = Math.random() * 900;
+
+        double targetX = (viewX - mCenter.getX().doubleValue());
+        double targetY = (viewY - mCenter.getY().doubleValue());
+
+        double dist = Math.sqrt(Math.pow(targetX, 2) + Math.pow(targetY, 2));
+        double ratio = dist / mViewDistance;
+
+        double testX = targetX / ratio;
+        double testY = targetY / ratio;
+
+        mViewFocus = new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+                mCenter.getX().doubleValue() + testX, mCenter.getY().doubleValue() + testY);
+
+        Point p = rotatePoint(new Point(mViewFocus.getX2(), mViewFocus.getY2()), new Point(mViewFocus.getX1(), mViewFocus.getY1()), mViewAngle / 2);
+
+        mViewClock = new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+                p.getX().doubleValue(), p.getY().doubleValue());
+
+        p = rotatePoint(new Point(mViewFocus.getX2(), mViewFocus.getY2()), new Point(mViewFocus.getX1(), mViewFocus.getY1()), 360 - mViewAngle / 2 );
+
+        mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+                p.getX().doubleValue(), p.getY().doubleValue());
+    }
 
     public Carnivore(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -68,6 +144,8 @@ public class Carnivore extends Actor {
 
     @Override
     public void tick(long frameTime, Grid grid) {
+        mLifeTime++;
+
         eat();
 
         if(starve(frameTime)){
@@ -155,6 +233,26 @@ public class Carnivore extends Actor {
     }
 
     @Override
+    public Specimen toSpecimen() {
+        Map<String, Double> props = new HashMap<>();
+
+        props.put(KEY_WIDTH, (double)mWidth);
+        props.put(KEY_HEIGHT, (double)mHeight);
+        props.put(KEY_ANGLEPERSEC, mAnglePerSec);
+        props.put(KEY_VIEWDISTANCE, mViewDistance);
+        props.put(KEY_VIEWANGLE, mViewAngle);
+        props.put(KEY_SPEED, mSpeed);
+        props.put(KEY_MAXFLEEDIST, mMaxFleeDist);
+        props.put(KEY_MAXHEALTH, mMaxHealth);
+        props.put(KEY_AUDIORADIUS, mAudioRadius);
+        props.put(KEY_STARVATIONRATE, mStarvationRate);
+        props.put(KEY_FOODPRIORITY, mFoodPriority);
+        props.put(KEY_FOODWEIGHT, mFoodWeight);
+
+        return new Specimen(mLifeTime.doubleValue(), props);
+    }
+
+    @Override
     public void draw(GraphicsContext g) {
         g.setFill(BOX_COLOR);
         double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
@@ -203,5 +301,31 @@ public class Carnivore extends Actor {
     @Override
     public List<Point> getPoints() {
         return mPoints;
+    }
+
+    public static class CarnivoreBuilder extends Actor.ActorBuilder implements EntityBuilder<Carnivore> {
+        public CarnivoreBuilder() {
+
+        }
+
+        @Override
+        public Carnivore buildEntity(Specimen specimen) {
+            setAnglePerSec(specimen.getProps().get(KEY_ANGLEPERSEC))
+                    .setX(specimen.getProps().get(KEY_X).intValue())
+                    .setY(specimen.getProps().get(KEY_Y).intValue())
+                    .setHeight(specimen.getProps().get(KEY_HEIGHT).intValue())
+                    .setWidth(specimen.getProps().get(KEY_WIDTH).intValue())
+                    .setAudioRadius(specimen.getProps().get(KEY_AUDIORADIUS))
+                    .setFoodPriority(specimen.getProps().get(KEY_FOODPRIORITY))
+                    .setFoodWeight(specimen.getProps().get(KEY_FOODWEIGHT))
+                    .setMaxFleeDist(specimen.getProps().get(KEY_MAXFLEEDIST))
+                    .setStarvationRate(specimen.getProps().get(KEY_STARVATIONRATE))
+                    .setViewAngle(specimen.getProps().get(KEY_VIEWANGLE))
+                    .setViewDistance(specimen.getProps().get(KEY_VIEWDISTANCE))
+                    .setSpeed(specimen.getProps().get(KEY_SPEED))
+                    .setMaxHealth(specimen.getProps().get(KEY_MAXHEALTH));
+
+            return new Carnivore(this);
+        }
     }
 }

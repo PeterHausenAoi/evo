@@ -1,5 +1,6 @@
 package main.java.com.github.PeterHausenAoi.evo.entities;
 
+import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.util.Log;
@@ -14,11 +15,11 @@ abstract public class Actor extends BaseEntity implements Movable {
     private static final String TAG = Actor.class.getSimpleName();
 
     protected static final String EAT_MODE = "EAT_MODE";
+
     protected static final String FLEE_MODE = "FLEE_MODE";
-
     protected static final String MOVE_STATE = "MOVE_STATE";
-    protected static final String ROTATION_STATE = "ROTATION_STATE";
 
+    protected static final String ROTATION_STATE = "ROTATION_STATE";
     protected Point mTarget;
 
     protected int mWidth;
@@ -26,20 +27,20 @@ abstract public class Actor extends BaseEntity implements Movable {
 
     protected double mAnglePerSec;
     protected double mViewDistance = 100.0;
-
     protected double mViewAngle = 90.0;
+
     protected Line2D mViewFocus;
     protected Line2D mViewClock;
-
     protected Line2D mViewCounter;
-
     protected double mSpeed = 50.0;
 
     protected Double mCurrangle;
+
     protected Double mTargetAngle;
     protected String mPositionState;
-
     protected BaseEntity mTargetEntity;
+    protected Point mVect;
+
     protected String mMode = EAT_MODE;
 
     protected double mFleeDist;
@@ -52,26 +53,46 @@ abstract public class Actor extends BaseEntity implements Movable {
     protected double mStarvationRate;
     protected boolean mDead = false;
 
-    protected Point mVect;
-
     protected double mFoodPriority;
     protected double mFoodWeight;
+    protected Integer mLifeTime;
 
     protected Set<Class<? extends BaseEntity>> mFoodClazzez;
     protected Set<Class<? extends BaseEntity>> mPredatorClazzez;
 
-    public Actor(int x, int y, int width, int height) {
-        super(x, y, width, height);
-        initFoodClazzez();
-        initPredatorClazzez();
+    public Actor(Actor.ActorBuilder builder){
+        this(builder.getX(), builder.getY(), builder.getWidth(), builder.getHeight());
+
+        mAnglePerSec = builder.getAnglePerSec();
+        mViewDistance = builder.getViewDistance();
+        mViewAngle = builder.getViewAngle();
+        mSpeed = builder.getSpeed();
+        mMaxFleeDist = builder.getMaxFleeDist();
+        mMaxHealth = builder.getMaxHealth();
+        mAudioRadius = builder.getAudioRadius();
+        mStarvationRate = builder.getStarvationRate();
+        mFoodPriority = builder.getFoodPriority();
+        mFoodWeight = builder.getFoodWeight();
+
+        mCurrHealth = mMaxHealth;
+        mLifeTime = 0;
     }
 
-    protected boolean isFoodPrio(){
+    public Actor(int x, int y, int width, int height) {
+        super(x, y, width, height);
+        mWidth = width;
+        mHeight = height;
+        initFoodClazzez();
+        initPredatorClazzez();
+        mLifeTime = 0;
+    }
+
+    protected boolean isFoodPriority(){
         double hunger = 1.0 - getHealthPerc();
         double weightedHunger = hunger * mFoodWeight;
-        Log.doLog(TAG, weightedHunger + " vs " + mFoodPriority);
-        return false;
-        //        return weightedHunger > mFoodPriority;
+//        Log.doLog(TAG, weightedHunger + " vs " + mFoodPriority);
+//        return false;
+        return weightedHunger > mFoodPriority;
     }
 
     protected double getHealthPerc(){
@@ -123,7 +144,6 @@ abstract public class Actor extends BaseEntity implements Movable {
                 .collect(Collectors.toSet());
     }
 
-
     protected Set<BaseEntity> getConePredators(Grid grid){
         Set<BaseEntity> ents = new HashSet<>();
         ents.addAll(grid.getConeEntities(mCenter,
@@ -141,6 +161,7 @@ abstract public class Actor extends BaseEntity implements Movable {
         return ents.stream().filter(baseEntity -> !baseEntity.equals(this) && isValidPredator(baseEntity.getClass()))
                 .collect(Collectors.toSet());
     }
+
 
     protected boolean isValidPredator(Class<?> foodClazz){
         for (Class<?> clazz : mPredatorClazzez){
@@ -345,7 +366,168 @@ abstract public class Actor extends BaseEntity implements Movable {
     }
 
     abstract public void tick(long frameTime, Grid grid);
-
     abstract protected void initFoodClazzez();
     abstract protected void initPredatorClazzez();
+
+    public abstract Specimen toSpecimen();
+
+    public Integer getLifeTime() {
+        return mLifeTime;
+    }
+
+    public static class ActorBuilder{
+        protected int x;
+        protected int y;
+        protected int mWidth;
+        protected int mHeight;
+        protected double mAnglePerSec;
+        protected double mViewDistance;
+        protected double mViewAngle;
+        protected double mSpeed;
+        protected double mFleeDist;
+        protected double mMaxFleeDist;
+        protected double mMaxHealth;
+        protected double mAudioRadius;
+        protected double mStarvationRate;
+        protected double mFoodPriority;
+        protected double mFoodWeight;
+
+        public ActorBuilder() {
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public ActorBuilder setX(int x) {
+            this.x = x;
+            return this;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public ActorBuilder setY(int y) {
+            this.y = y;
+            return this;
+        }
+
+        public int getWidth() {
+            return mWidth;
+        }
+
+        public ActorBuilder setWidth(int mWidth) {
+            this.mWidth = mWidth;
+            return this;
+        }
+
+        public int getHeight() {
+            return mHeight;
+        }
+
+        public ActorBuilder setHeight(int mHeight) {
+            this.mHeight = mHeight;
+            return this;
+        }
+
+        public double getAnglePerSec() {
+            return mAnglePerSec;
+        }
+
+        public ActorBuilder setAnglePerSec(double mAnglePerSec) {
+            this.mAnglePerSec = mAnglePerSec;
+            return this;
+        }
+
+        public double getViewDistance() {
+            return mViewDistance;
+        }
+
+        public ActorBuilder setViewDistance(double mViewDistance) {
+            this.mViewDistance = mViewDistance;
+            return this;
+        }
+
+        public double getViewAngle() {
+            return mViewAngle;
+        }
+
+        public ActorBuilder setViewAngle(double mViewAngle) {
+            this.mViewAngle = mViewAngle;
+            return this;
+        }
+
+        public double getSpeed() {
+            return mSpeed;
+        }
+
+        public ActorBuilder setSpeed(double mSpeed) {
+            this.mSpeed = mSpeed;
+            return this;
+        }
+
+        public double getFleeDist() {
+            return mFleeDist;
+        }
+
+        public ActorBuilder setFleeDist(double mFleeDist) {
+            this.mFleeDist = mFleeDist;
+            return this;
+        }
+
+        public double getMaxFleeDist() {
+            return mMaxFleeDist;
+        }
+
+        public ActorBuilder setMaxFleeDist(double mMaxFleeDist) {
+            this.mMaxFleeDist = mMaxFleeDist;
+            return this;
+        }
+
+        public double getMaxHealth() {
+            return mMaxHealth;
+        }
+
+        public ActorBuilder setMaxHealth(double mMaxHealth) {
+            this.mMaxHealth = mMaxHealth;
+            return this;
+        }
+
+        public double getAudioRadius() {
+            return mAudioRadius;
+        }
+
+        public ActorBuilder setAudioRadius(double mAudioRadius) {
+            this.mAudioRadius = mAudioRadius;
+            return this;
+        }
+
+        public double getStarvationRate() {
+            return mStarvationRate;
+        }
+
+        public ActorBuilder setStarvationRate(double mStarvationRate) {
+            this.mStarvationRate = mStarvationRate;
+            return this;
+        }
+
+        public double getFoodPriority() {
+            return mFoodPriority;
+        }
+
+        public ActorBuilder setFoodPriority(double mFoodPriority) {
+            this.mFoodPriority = mFoodPriority;
+            return this;
+        }
+
+        public double getFoodWeight() {
+            return mFoodWeight;
+        }
+
+        public ActorBuilder setFoodWeight(double mFoodWeight) {
+            this.mFoodWeight = mFoodWeight;
+            return this;
+        }
+    }
 }
