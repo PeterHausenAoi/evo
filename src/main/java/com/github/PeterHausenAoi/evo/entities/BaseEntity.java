@@ -72,8 +72,21 @@ abstract public class BaseEntity implements Collidable, Drawable {
         mContainers.add(cell);
     }
 
+    protected void updateAbandonedCells(){
+        List<GridCell> delList = new ArrayList<>();
+
+        for (GridCell cont : mContainers){
+            if (!cont.isColliding(this)){
+                cont.removeEntity(this);
+                delList.add(cont);
+            }
+        }
+
+        mContainers.removeAll(delList);
+    }
+
     public void clearContainers(){
-        mContainers.stream().forEach(gridCell -> gridCell.removeEntity(this));
+        mContainers.forEach(gridCell -> gridCell.removeEntity(this));
         mContainers.clear();
     }
 
@@ -138,5 +151,9 @@ abstract public class BaseEntity implements Collidable, Drawable {
 
     public Point getCenter() {
         return mCenter;
+    }
+
+    public List<GridCell> getContainers() {
+        return mContainers;
     }
 }

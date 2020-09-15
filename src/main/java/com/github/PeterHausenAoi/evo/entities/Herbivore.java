@@ -426,7 +426,10 @@ public class Herbivore extends Actor implements Tickable, Edible {
     @Override
     protected void initPredatorClazzez() {
         Set<Class<? extends BaseEntity>> clazzes = new HashSet<>();
+
         clazzes.add(Carnivore.class);
+        clazzes.add(Hunter.class);
+
         mPredatorClazzez = Collections.unmodifiableSet(clazzes);
     }
 

@@ -7,11 +7,12 @@ import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
 import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
+import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 
 import java.awt.geom.Line2D;
 import java.util.*;
 
-public class Carnivore extends Actor {
+public class Carnivore extends Actor implements Edible{
     private static final String TAG = Carnivore.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.BLUE;
@@ -299,8 +300,20 @@ public class Carnivore extends Actor {
     }
 
     @Override
-    public List<Point> getPoints() {
-        return mPoints;
+    public double getNutrient() {
+        return mNutrient;
+    }
+
+    @Override
+    public void digest() {
+        mCurrHealth = 0;
+        mDead = true;
+
+        for (GridCell cell : mContainers){
+            cell.removeEntity(this);
+        }
+
+        mContainers.clear();
     }
 
     public static class CarnivoreBuilder extends Actor.ActorBuilder {

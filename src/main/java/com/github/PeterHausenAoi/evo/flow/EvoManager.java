@@ -4,6 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import main.java.com.github.PeterHausenAoi.evo.entities.Carnivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Herbivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Food;
+import main.java.com.github.PeterHausenAoi.evo.entities.Hunter;
 import main.java.com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
 import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
@@ -38,10 +39,12 @@ public class EvoManager {
 
     List<Herbivore> mHerbivores;
     List<Carnivore> mCarnivores;
+    List<Hunter> mHunters;
     List<Food> mFoods;
 
     EvolutionChamber<Herbivore> mHerbCh;
     EvolutionChamber<Carnivore> mCarnCh;
+    EvolutionChamber<Hunter> mHunterCh;
 
     private GraphicsContext mGraphics;
 
@@ -61,27 +64,35 @@ public class EvoManager {
         mHerbivores = new ArrayList<>();
         mFoods = new ArrayList<>();
         mCarnivores = new ArrayList<>();
+        mHunters = new ArrayList<>();
 
         mHerbCh = new EvolutionChamber<>(Herbivore.getSpeciesDescriptor());
         mCarnCh = new EvolutionChamber<>(Carnivore.getSpeciesDescriptor());
+        mHunterCh = new EvolutionChamber<>(Hunter.getSpeciesDescriptor());
 
-//        for (int i = 0; i < 50; i++) {
+        //        for (int i = 0; i < 50; i++) {
 //            Herbivore herb = mHerbCh.getNextSpecimen();
 //            mHerbivores.add(herb);
 //            mGrid.placeEntity(herb);
 //        }
 
-//        for (int i = 0; i < 3; i++) {
+//        for (int i = 0; i < 10; i++) {
 //            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
 //            mHerbivores.add(herb);
 //            mGrid.placeEntity(herb);
 //        }
 
-//        for (int i = 0; i < 15; i++) {
-//            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
-//            mCarnivores.add(car);
-//            mGrid.placeEntity(car);
-//        }
+        for (int i = 0; i < 15; i++) {
+            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+            mCarnivores.add(car);
+            mGrid.placeEntity(car);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            Hunter hunt = new Hunter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
+            mHunters.add(hunt);
+            mGrid.placeEntity(hunt);
+        }
     }
 
     private void tick(){
@@ -106,6 +117,17 @@ public class EvoManager {
 
         mHerbivores = mHerbivores.stream().filter(herb -> !herb.isDead()).collect(Collectors.toList());
         mCurrHerbSpawnTime = mHerbivores.size() == 0 ? mBaseHerbSpawnTime : mBaseHerbSpawnTime / mHerbivores.size();
+
+        for (Hunter hunt : mHunters) {
+            hunt.tick(mFrameTime, mGrid);
+
+            if (hunt.isDead()){
+                mHunterCh.addSpecimen(hunt);
+            }
+        }
+
+        mHunters = mHunters.stream().filter(hunt -> !hunt.isDead()).collect(Collectors.toList());
+        mCurrHunterSpawnTime = mHunters.size() == 0 ? mBaseHunterSpawnTime : mBaseHunterSpawnTime / mHunters.size();
     }
 
     private void spawnHerbivore(){
@@ -161,12 +183,12 @@ public class EvoManager {
 
 
         if(mHerbTickCount >= mCurrHerbSpawnTime){
-            spawnHerbivore();
+//            spawnHerbivore();
             mHerbTickCount = 0;
         }
 
         if(mCarnTickCount >= mCurrCarnSpawnTime){
-            spawnCarnivore();
+//            spawnCarnivore();
             mCarnTickCount = 0;
         }
 
@@ -190,6 +212,10 @@ public class EvoManager {
 
         for (Carnivore car : mCarnivores) {
             car.draw(mGraphics);
+        }
+
+        for (Hunter hunt : mHunters){
+            hunt.draw(mGraphics);
         }
     }
 

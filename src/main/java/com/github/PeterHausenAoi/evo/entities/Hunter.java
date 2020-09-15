@@ -2,17 +2,18 @@ package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import main.java.com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
 import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
+import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 
 import java.awt.geom.Line2D;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class Hunter extends Actor {
+public class Hunter extends Actor implements Edible{
     private static final String TAG = Hunter.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.YELLOW;
@@ -32,12 +33,14 @@ public class Hunter extends Actor {
     private static final String KEY_FOODPRIORITY = "KEY_FOODPRIORITY";
     private static final String KEY_FOODWEIGHT = "KEY_FOODWEIGHT";
 
-    private static final String FIRING_RATE = "FIRING_RATE";
-    private static final String FIRING_RANGE = "FIRING_RANGE";
+    private static final String KEY_FIRING_RATE = "FIRING_RATE";
+    private static final String KEY_FIRING_RANGE = "FIRING_RANGE";
+    private static final String KEY_BULLET_SIZE = "KEY_BULLET_SIZE";
+    private static final String KEY_BULLET_SPEED = "KEY_BULLET_SPEED";
 
-    private static SpeciesDescriptor<Carnivore> mSpeciesDescriptor;
+    private static SpeciesDescriptor<Hunter> mSpeciesDescriptor;
 
-    public static synchronized SpeciesDescriptor<Carnivore> getSpeciesDescriptor(){
+    public static synchronized SpeciesDescriptor<Hunter> getSpeciesDescriptor(){
         if (mSpeciesDescriptor != null){
             return mSpeciesDescriptor;
         }
@@ -58,19 +61,41 @@ public class Hunter extends Actor {
         params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
         params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
-        mSpeciesDescriptor = new SpeciesDescriptor<>(new Carnivore.CarnivoreEntityBuilder(), params);
+        params.add(new SpeciesParam(KEY_FIRING_RATE, 10.0, 20.0, false));
+        params.add(new SpeciesParam(KEY_FIRING_RANGE, 50.0, 200.0, false));
+        params.add(new SpeciesParam(KEY_BULLET_SIZE, 10.0, 30.0, false));
+        params.add(new SpeciesParam(KEY_BULLET_SPEED, 200.0, 1000.0, false));
+
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new HunterEntityBuilder(), params);
 
         return mSpeciesDescriptor;
     }
 
     private double mNutrient;
 
-    private Integer mFiringRate;
-    private Integer mFiringRange;
+    private double mFiringRate;
+    private double mBulletTime;
+    private double mFiringRange;
+    private double mBulletSpeed;
+    private double mBulletsize;
+
+    private long mCoolDownTime;
+
+    private List<Bullet> mBullets;
 
     public Hunter(Actor.ActorBuilder builder) {
         super(builder);
         mNutrient = Math.random() * 100 + 20;
+
+        if (builder instanceof HunterBuilder){
+            HunterBuilder hbuilder = (HunterBuilder)builder;
+            mBulletsize = hbuilder.getBulletsize();
+            mBulletSpeed = hbuilder.getBulletSpeed();
+            mFiringRange = hbuilder.getFiringRange();
+            mFiringRate = hbuilder.getFiringRate();
+
+            mBulletTime = 1000 / mFiringRate;
+        }
 
         double viewX = Math.random() * 1900;
         double viewY = Math.random() * 900;
@@ -96,6 +121,8 @@ public class Hunter extends Actor {
 
         mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
                 p.getX().doubleValue(), p.getY().doubleValue());
+
+        mBullets = new ArrayList<>();
     }
 
     public Hunter(int x, int y, int width, int height) {
@@ -106,10 +133,11 @@ public class Hunter extends Actor {
 
         mAnglePerSec = Math.random() * 500 + 1;
         mSpeed = Math.random() * 500 + 50;
-        mSpeed = 10;
+        mSpeed = 100;
 
         mCurrangle = 0.0;
         mViewDistance = Math.random() * 450 + 50;
+        mViewDistance = 450;
         mViewAngle = Math.random() * 160 + 10;
 
         mMaxHealth = Math.random() * 120 + 100;
@@ -118,6 +146,14 @@ public class Hunter extends Actor {
         mStarvationRate = 1;
 
         mAudioRadius = Math.random() * 200 + 10;
+        mAudioRadius = 200 + 10;
+
+        mFiringRate = 2.0;
+        mFiringRange = 1000.0;
+        mBulletsize = 20;
+        mBulletSpeed = 200;
+
+        mBulletTime = 1000 / mFiringRate;
 
         double viewX = Math.random() * 1900;
         double viewY = Math.random() * 900;
@@ -143,6 +179,8 @@ public class Hunter extends Actor {
 
         mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
                 p.getX().doubleValue(), p.getY().doubleValue());
+
+        mBullets = new ArrayList<>();
     }
 
     public boolean isDead() {
@@ -150,38 +188,343 @@ public class Hunter extends Actor {
     }
 
     @Override
+    protected void eat(){
+        Set<Bullet> delBullets = new HashSet<>();
+
+        for (Bullet bullet : mBullets){
+            for (GridCell cell : bullet.getContainers()){
+                List<BaseEntity> foods = cell.getEntities().stream().filter(baseEntity -> !baseEntity.equals(this)
+                        && isValidFood(baseEntity.getClass())
+                        && baseEntity instanceof Edible
+                        && (baseEntity.isColliding(bullet) || bullet.isColliding(baseEntity)))
+                        .collect(Collectors.toList());
+
+                for (BaseEntity f : foods){
+                    f.clearContainers();
+
+                    Edible food = (Edible)f;
+                    food.digest();
+
+                    this.mCurrHealth += food.getNutrient();
+
+                    if(this.mCurrHealth > mMaxHealth){
+                        mCurrHealth = mMaxHealth;
+                    }
+
+                    if (mTargetEntity == food){
+                        mTargetEntity = null;
+                        mTarget = null;
+                    }
+
+                    delBullets.add(bullet);
+                }
+            }
+        }
+
+        delBullets.forEach(BaseEntity::clearContainers);
+        mBullets.removeAll(delBullets);
+    }
+
+    @Override
     public void tick(long frameTime, Grid grid) {
         mLifeTime++;
+
+        Set<Bullet> mDelBullets = new HashSet<>();
+
+        for (Bullet bullet : mBullets){
+            if (bullet.getCenter().getX().intValue() < 0 || bullet.getCenter().getX().intValue() > 1900
+                    || bullet.getCenter().getY().intValue() < 0 || bullet.getCenter().getY().intValue() > 900){
+                mDelBullets.add(bullet);
+            }
+        }
+
+        mDelBullets.forEach(Bullet::clearContainers);
+        mBullets.removeAll(mDelBullets);
 
         eat();
 
         if(starve(frameTime)){
             return;
         }
+
+        BaseEntity newTarget = getTarget(grid);
+        boolean targetAcquired = false;
+
+        if (newTarget != mTargetEntity){
+            if (newTarget == null){
+                mTarget = null;
+                mTargetEntity = null;
+            }else{
+                targetAcquired = true;
+                mTarget = new Point(newTarget.getCenter().getX(), newTarget.getCenter().getY());
+                mTargetEntity = newTarget;
+            }
+        }else if (newTarget != null){
+            double angle1 = angleBetween2Lines(mViewFocus.getP1(), mViewFocus.getP2(), mViewFocus.getP1(),
+                    new java.awt.Point(mTargetEntity.getCenter().getX().intValue(),
+                            mTargetEntity.getCenter().getY().intValue()));
+            double angle2 = (360 - Math.abs(angle1)) * (0 - Math.signum(angle1));
+
+            double targetAngle;
+
+            if (Math.abs(angle1) < Math.abs(angle2)){
+                targetAngle = Math.abs(round(angle1, 0));
+            }else{
+                targetAngle = Math.abs(round(angle2, 0));
+            }
+
+            if (Math.abs(targetAngle - round(mCurrangle,0)) > 1){
+                mPositionState = ROTATION_STATE;
+                targetAcquired = true;
+                mTarget = new Point(newTarget.getCenter().getX(), newTarget.getCenter().getY());
+            }else{
+                mPositionState = MOVE_STATE;
+                mTarget = new Point(newTarget.getCenter().getX(), newTarget.getCenter().getY());
+                targetAcquired = false;
+            }
+        }
+
+        if(mTarget == null || isTargetReached() || targetAcquired){
+            if (newTarget == null || isTargetReached()){
+                mTarget = new Point(Math.random() * grid.getWidth().doubleValue(), Math.random() * grid.getHeight().doubleValue());
+                mTargetEntity = null;
+            }
+
+            mPositionState = ROTATION_STATE;
+            mCurrangle = 0.0;
+
+            double angle1 = angleBetween2Lines(mViewFocus.getP1(), mViewFocus.getP2(),
+                    mViewFocus.getP1(), new java.awt.Point(mTarget.getX().intValue(),mTarget.getY().intValue()));
+            double angle2 = (360 - Math.abs(angle1)) * (0 - Math.signum(angle1));
+
+            if (Math.abs(angle1) < Math.abs(angle2)){
+                mTargetAngle = round(angle1, 4);
+            }else{
+                mTargetAngle = round(angle2, 4);
+            }
+        }
+
+        if(MOVE_STATE.equals(mPositionState)){
+            double dist = 0;
+
+            if (mTargetEntity != null){
+                dist = calcDist(mCenter.getX().doubleValue(),
+                        mCenter.getY().doubleValue(),
+                        mTargetEntity.getCenter().getX().doubleValue(),
+                        mTargetEntity.getCenter().getY().doubleValue());
+            }
+
+            if ((mCoolDownTime >= mBulletTime) && mTargetEntity != null && dist < mFiringRange){
+                Bullet bullet = new Bullet(mCenter.getX().intValue(),
+                        mCenter.getY().intValue(),
+                        (int)mBulletsize,
+                        (int)mBulletsize,
+                        new Point(mTargetEntity.getCenter().getX().doubleValue(), mTargetEntity.getCenter().getY().doubleValue()),
+                        mBulletSpeed);
+
+                mCoolDownTime = 0;
+                mBullets.add(bullet);
+            }else{
+                mCoolDownTime += frameTime;
+                move(frameTime);
+            }
+        }else{
+            rotate(frameTime);
+        }
+
+        mBullets.forEach(bullet -> {
+            bullet.move(frameTime);
+            grid.placeEntity(bullet);
+            bullet.updateAbandonedCells();
+        });
+
+        grid.placeEntity(this);
+        updateAbandonedCells();
     }
 
     @Override
     protected void initFoodClazzez() {
+        Set<Class<? extends BaseEntity>> clazzes = new HashSet<>();
 
+        clazzes.add(Herbivore.class);
+        clazzes.add(Carnivore.class);
+        // TODO cannibalism rocks
+        clazzes.add(Hunter.class);
+
+        mFoodClazzez = Collections.unmodifiableSet(clazzes);
     }
 
     @Override
     protected void initPredatorClazzez() {
-
+        Set<Class<? extends BaseEntity>> clazzes = new HashSet<>();
+        mPredatorClazzez = Collections.unmodifiableSet(clazzes);
     }
 
     @Override
     public Specimen toSpecimen() {
-        return null;
+        Map<String, Double> props = new HashMap<>();
+
+        props.put(KEY_WIDTH, (double)mWidth);
+        props.put(KEY_HEIGHT, (double)mHeight);
+        props.put(KEY_ANGLEPERSEC, mAnglePerSec);
+        props.put(KEY_VIEWDISTANCE, mViewDistance);
+        props.put(KEY_VIEWANGLE, mViewAngle);
+        props.put(KEY_SPEED, mSpeed);
+        props.put(KEY_MAXFLEEDIST, mMaxFleeDist);
+        props.put(KEY_MAXHEALTH, mMaxHealth);
+        props.put(KEY_AUDIORADIUS, mAudioRadius);
+        props.put(KEY_STARVATIONRATE, mStarvationRate);
+        props.put(KEY_FOODPRIORITY, mFoodPriority);
+        props.put(KEY_FOODWEIGHT, mFoodWeight);
+        props.put(KEY_FIRING_RATE, mFiringRate);
+        props.put(KEY_FIRING_RANGE, mFiringRange);
+        props.put(KEY_BULLET_SIZE, mBulletsize);
+        props.put(KEY_BULLET_SPEED, mBulletSpeed);
+
+        return new Specimen(mGen, mLifeTime.doubleValue(), props);
     }
 
     @Override
     public void draw(GraphicsContext g) {
+        g.setFill(BOX_COLOR);
+        double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
+        double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
+        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
 
+        double hpBar = 50.0;
+        g.setFill(Color.DARKRED);
+        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar, 10);
+
+        g.setFill(Color.DARKGREEN);
+        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar * mCurrHealth / mMaxHealth, 10);
+
+        g.setFill(Color.YELLOW);
+        g.fillText(String.valueOf(mGen), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
+
+        g.setStroke(Color.AQUA);
+        g.setLineWidth(2);
+        g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
+
+        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+        g.setLineWidth(2);
+        g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
+
+        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+        g.setLineWidth(2);
+        g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewClock.getX2(), mViewClock.getY2());
+
+        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+        g.setLineWidth(2);
+        g.strokeLine(mViewCounter.getX1(), mViewCounter.getY1(), mViewCounter.getX2(), mViewCounter.getY2());
+
+        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+        g.setLineWidth(2);
+        g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+
+        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+        g.setLineWidth(2);
+        g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
+
+        g.setStroke(Color.PINK);
+        g.setLineWidth(2);
+        g.strokeLine(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(), mTarget.getX().doubleValue(), mTarget.getY().doubleValue());
+
+        mBullets.forEach(bullet -> bullet.draw(g));
     }
 
     @Override
-    public List<Point> getPoints() {
-        return null;
+    public double getNutrient() {
+        return mNutrient;
+    }
+
+    @Override
+    public void digest() {
+        mCurrHealth = 0;
+        mDead = true;
+
+        mBullets.forEach(BaseEntity::clearContainers);
+
+        for (GridCell cell : mContainers){
+            cell.removeEntity(this);
+        }
+
+        mContainers.clear();
+    }
+
+    public static class HunterBuilder extends Actor.ActorBuilder {
+        private double firingRate;
+        private double firingRange;
+        private double bulletSpeed;
+        private double bulletsize;
+
+        public HunterBuilder() {
+
+        }
+
+        public double getBulletSpeed() {
+            return bulletSpeed;
+        }
+
+        public HunterBuilder setBulletSpeed(double bulletSpeed) {
+            this.bulletSpeed = bulletSpeed;
+            return this;
+        }
+
+        public double getBulletsize() {
+            return bulletsize;
+        }
+
+        public HunterBuilder setBulletsize(double bulletsize) {
+            this.bulletsize = bulletsize;
+            return this;
+        }
+
+        public double getFiringRate() {
+            return firingRate;
+        }
+
+        public HunterBuilder setFiringRate(double firingRate) {
+            this.firingRate = firingRate;
+            return this;
+        }
+
+        public double getFiringRange() {
+            return firingRange;
+        }
+
+        public HunterBuilder setFiringRange(double firingRange) {
+            this.firingRange = firingRange;
+            return this;
+        }
+    }
+
+    public static class HunterEntityBuilder implements EntityBuilder<Hunter> {
+
+        @Override
+        public Hunter buildEntity(Specimen specimen) {
+            Hunter.HunterBuilder builder = new Hunter.HunterBuilder();
+
+            builder.setBulletsize(specimen.getProps().get(KEY_BULLET_SIZE))
+                    .setBulletSpeed(specimen.getProps().get(KEY_BULLET_SPEED))
+                    .setFiringRange(specimen.getProps().get(KEY_FIRING_RANGE))
+                    .setFiringRate(specimen.getProps().get(KEY_FIRING_RATE))
+                    .setAnglePerSec(specimen.getProps().get(KEY_ANGLEPERSEC))
+                    .setX(specimen.getProps().get(KEY_X).intValue())
+                    .setY(specimen.getProps().get(KEY_Y).intValue())
+                    .setHeight(specimen.getProps().get(KEY_HEIGHT).intValue())
+                    .setWidth(specimen.getProps().get(KEY_WIDTH).intValue())
+                    .setAudioRadius(specimen.getProps().get(KEY_AUDIORADIUS))
+                    .setFoodPriority(specimen.getProps().get(KEY_FOODPRIORITY))
+                    .setFoodWeight(specimen.getProps().get(KEY_FOODWEIGHT))
+                    .setMaxFleeDist(specimen.getProps().get(KEY_MAXFLEEDIST))
+                    .setStarvationRate(specimen.getProps().get(KEY_STARVATIONRATE))
+                    .setViewAngle(specimen.getProps().get(KEY_VIEWANGLE))
+                    .setViewDistance(specimen.getProps().get(KEY_VIEWDISTANCE))
+                    .setSpeed(specimen.getProps().get(KEY_SPEED))
+                    .setMaxHealth(specimen.getProps().get(KEY_MAXHEALTH))
+                    .setGen(specimen.getGen());
+
+            return new Hunter(builder);
+        }
     }
 }
