@@ -1,12 +1,15 @@
 package main.java.com.github.PeterHausenAoi.evo.flow;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import main.java.com.github.PeterHausenAoi.evo.entities.Carnivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Herbivore;
 import main.java.com.github.PeterHausenAoi.evo.entities.Food;
 import main.java.com.github.PeterHausenAoi.evo.entities.Hunter;
 import main.java.com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class EvoManager {
     private static final String TAG = EvoManager.class.getSimpleName();
+    public static boolean DEBUG_DISPLAY = false;
 
     private int mWidth;
     private int mHeight;
@@ -25,11 +29,11 @@ public class EvoManager {
     private long mSubFrameTime;
     private long mTickCount;
 
-    private long mFoodSpawnTickCount = 30 * 2;
+    private long mFoodSpawnTickCount = 30 * 1;
 
-    private long mBaseHerbSpawnTime = 30 * 10;
-    private long mBaseCarnSpawnTime = 30 * 20;
-    private long mBaseHunterSpawnTime = 30 * 50;
+    private long mBaseHerbSpawnTime = 30 * 3;
+    private long mBaseCarnSpawnTime = 30 * 5;
+    private long mBaseHunterSpawnTime = 30 * 4;
 
     private long mCurrHerbSpawnTime = mBaseHerbSpawnTime;
     private long mCurrCarnSpawnTime = mBaseCarnSpawnTime;
@@ -48,6 +52,8 @@ public class EvoManager {
 
     private GraphicsContext mGraphics;
 
+    private Image bg;
+
     public EvoManager(GraphicsContext graphics, int width, int height, int cellWidth, int tickRate) {
         this.mGraphics = graphics;
 
@@ -60,6 +66,8 @@ public class EvoManager {
         this.mFrameTime = 1000 / mTickRate;
 
         this.mGrid = new Grid(width, height, cellWidth);
+
+        bg = ImageFactory.getImage("bg.png", new Resizer(mWidth, mHeight, null));
 
         mHerbivores = new ArrayList<>();
         mFoods = new ArrayList<>();
@@ -76,27 +84,36 @@ public class EvoManager {
 //            mGrid.placeEntity(herb);
 //        }
 
-//        for (int i = 0; i < 10; i++) {
-//            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
+//        for (int i = 0; i < 1; i++) {
+//            Herbivore herb = new Herbivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 40,40);
 //            mHerbivores.add(herb);
 //            mGrid.placeEntity(herb);
 //        }
+//
+//        for (int i = 0; i < 4; i++) {
+//            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,50);
+//            mCarnivores.add(car);
+//            mGrid.placeEntity(car);
+//        }
+////
+//        for (int i = 0; i < 4; i++) {
+//            Hunter hunt = new Hunter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,40);
+//            mHunters.add(hunt);
+//            mGrid.placeEntity(hunt);
+//        }
+    }
 
-        for (int i = 0; i < 15; i++) {
-            Carnivore car = new Carnivore((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
-            mCarnivores.add(car);
-            mGrid.placeEntity(car);
-        }
-
-        for (int i = 0; i < 4; i++) {
-            Hunter hunt = new Hunter((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 20,20);
-            mHunters.add(hunt);
-            mGrid.placeEntity(hunt);
-        }
+    public GridCell getCell(int x, int y){
+        return mGrid.getCell(x, y);
     }
 
     private void tick(){
         for (Carnivore car : mCarnivores) {
+            if (car.isDead()){
+                mCarnCh.addSpecimen(car);
+                continue;
+            }
+
             car.tick(mFrameTime, mGrid);
 
             if (car.isDead()){
@@ -104,10 +121,16 @@ public class EvoManager {
             }
         }
 
+        mCarnivores.stream().filter(Carnivore::isDead).forEach(Carnivore::clearContainers);
         mCarnivores = mCarnivores.stream().filter(car -> !car.isDead()).collect(Collectors.toList());
-        mCurrCarnSpawnTime = mCarnivores.size() == 0 ? mBaseCarnSpawnTime : mBaseCarnSpawnTime / mCarnivores.size();
+//        mCurrCarnSpawnTime = mCarnivores.size() == 0 ? mBaseCarnSpawnTime : mBaseCarnSpawnTime / mCarnivores.size();
 
         for (Herbivore herb : mHerbivores) {
+            if (herb.isDead()){
+                mHerbCh.addSpecimen(herb);
+                continue;
+            }
+
             herb.tick(mFrameTime, mGrid);
 
             if (herb.isDead()){
@@ -115,10 +138,16 @@ public class EvoManager {
             }
         }
 
+        mHerbivores.stream().filter(Herbivore::isDead).forEach(Herbivore::clearContainers);
         mHerbivores = mHerbivores.stream().filter(herb -> !herb.isDead()).collect(Collectors.toList());
-        mCurrHerbSpawnTime = mHerbivores.size() == 0 ? mBaseHerbSpawnTime : mBaseHerbSpawnTime / mHerbivores.size();
+//        mCurrHerbSpawnTime = mHerbivores.size() == 0 ? mBaseHerbSpawnTime : mBaseHerbSpawnTime / mHerbivores.size();
 
         for (Hunter hunt : mHunters) {
+            if (hunt.isDead()){
+                mHunterCh.addSpecimen(hunt);
+                continue;
+            }
+
             hunt.tick(mFrameTime, mGrid);
 
             if (hunt.isDead()){
@@ -126,31 +155,39 @@ public class EvoManager {
             }
         }
 
+        mHunters.stream().filter(Hunter::isDead).forEach(Hunter::clearContainers);
         mHunters = mHunters.stream().filter(hunt -> !hunt.isDead()).collect(Collectors.toList());
-        mCurrHunterSpawnTime = mHunters.size() == 0 ? mBaseHunterSpawnTime : mBaseHunterSpawnTime / mHunters.size();
+//        mCurrHunterSpawnTime = mHunters.size() == 0 ? mBaseHunterSpawnTime : mBaseHunterSpawnTime / mHunters.size();
     }
 
     private void spawnHerbivore(){
-        Log.doLog(TAG, "spawnHerbivore");
+//        Log.doLog(TAG, "spawnHerbivore");
         Herbivore herb = mHerbCh.getNextSpecimen();
         mHerbivores.add(herb);
         mGrid.placeEntity(herb);
     }
 
     private void spawnCarnivore(){
-        Log.doLog(TAG, "spawnCarnivore");
+//        Log.doLog(TAG, "spawnCarnivore");
         Carnivore carn = mCarnCh.getNextSpecimen();
         mCarnivores.add(carn);
         mGrid.placeEntity(carn);
     }
 
+    private void spawnHunter(){
+//        Log.doLog(TAG, "spawnHunter");
+        Hunter hunt = mHunterCh.getNextSpecimen();
+        mHunters.add(hunt);
+        mGrid.placeEntity(hunt);
+    }
+
     private void spawnFood(){
-//        if (mFoods.size() > mHerbivores.size() * 0.5){
-//            return;
-//        }
+        if (mFoods.size() > 100){
+            return;
+        }
 
 //        Log.doLog(TAG, "spawnFood");
-        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 50,50);
+        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
         f.setHandler(new EvoManager.FoodHandler(f));
 
         mGrid.placeEntity(f);
@@ -159,6 +196,7 @@ public class EvoManager {
 
     long mHerbTickCount = 0;
     long mCarnTickCount = 0;
+    long mHunterTickCount = 0;
 
     long curr = 0;
 
@@ -172,24 +210,31 @@ public class EvoManager {
         }
 
         mTickCount++;
+
         mHerbTickCount++;
         mCarnTickCount++;
+        mHunterTickCount++;
 
         if(mTickCount % (mFoodSpawnTickCount) == 0){
-            Log.doLog(TAG, "|" + (System.currentTimeMillis() - curr));
+//            Log.doLog(TAG, "|" + (System.currentTimeMillis() - curr));
             curr = System.currentTimeMillis();
             spawnFood();
         }
 
 
-        if(mHerbTickCount >= mCurrHerbSpawnTime){
-//            spawnHerbivore();
+        if(mHerbTickCount >= mCurrHerbSpawnTime && mHerbivores.size() < 100){
+            spawnHerbivore();
             mHerbTickCount = 0;
         }
 
-        if(mCarnTickCount >= mCurrCarnSpawnTime){
-//            spawnCarnivore();
+        if(mCarnTickCount    >= mCurrCarnSpawnTime && mCarnivores.size() < 100){
+            spawnCarnivore();
             mCarnTickCount = 0;
+        }
+
+        if(mHunterTickCount >= mCurrHunterSpawnTime && mHunters.size() < 100){
+            spawnHunter();
+            mHunterTickCount = 0;
         }
 
         mSubFrameTime = 0;
@@ -200,6 +245,8 @@ public class EvoManager {
 
     public void draw(){
         mGraphics.clearRect(0,0,mWidth, mHeight);
+        mGraphics.drawImage(bg, 0, 0);
+
         mGrid.draw(mGraphics);
 
         for (Food food : mFoods){
@@ -217,6 +264,9 @@ public class EvoManager {
         for (Hunter hunt : mHunters){
             hunt.draw(mGraphics);
         }
+
+        mGraphics.setStroke(Color.CORNFLOWERBLUE);
+        mGraphics.strokeRect(0,0, 1900, 900);
     }
 
     public class FoodHandler{

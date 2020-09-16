@@ -1,5 +1,6 @@
 package main.java.com.github.PeterHausenAoi.evo.entities;
 
+import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.graphics.Drawable;
 
@@ -70,6 +71,15 @@ abstract public class BaseEntity implements Collidable, Drawable {
 
     public void addContainer(GridCell cell){
         mContainers.add(cell);
+    }
+
+    public void updatePosition(Grid grid, BaseEntity ent){
+        grid.placeEntity(ent);
+        updateAbandonedCells();
+    }
+
+    public void updatePosition(Grid grid){
+        updatePosition(grid, this);
     }
 
     protected void updateAbandonedCells(){

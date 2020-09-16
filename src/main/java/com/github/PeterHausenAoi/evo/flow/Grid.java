@@ -72,6 +72,14 @@ public class Grid implements Drawable {
         }
     }
 
+    public GridCell getCell(int x, int y){
+        int cellX = x / mCellWidth;
+
+           int cellY = y / mCellWidth;
+
+        return mGrid[cellX][cellY];
+    }
+
     public List<BaseEntity> getRadiusEntities(Point p, Double radius) {
         int topLeftX = p.getX().intValue() - radius.intValue();
         int topLeftY = p.getY().intValue() - radius.intValue();
@@ -223,9 +231,11 @@ public class Grid implements Drawable {
 
     @Override
     public void draw(GraphicsContext g) {
-        for (int x = 0; x < mGrid.length; x++){
-            for (int y = 0; y < mGrid[x].length; y++){
-                mGrid[x][y].draw(g);
+        if (EvoManager.DEBUG_DISPLAY) {
+            for (int x = 0; x < mGrid.length; x++) {
+                for (int y = 0; y < mGrid[x].length; y++) {
+                    mGrid[x][y].draw(g);
+                }
             }
         }
     }

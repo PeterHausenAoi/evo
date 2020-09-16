@@ -41,7 +41,7 @@ public class Specimen {
 
             if (param.isRand() || mutation < mutationRate){
                 newProps.put(param.getName(), Math.random() * (param.getMax() - param.getMin()) + param.getMin());
-                Log.doLog(TAG, "Mutating");
+//                Log.doLog(TAG, "Mutating");
             }else{
                 Specimen parent = parents.get(((Long)Math.round(Math.random())).intValue());
                 newProps.put(param.getName(), parent.getProps().get(param.getName()));

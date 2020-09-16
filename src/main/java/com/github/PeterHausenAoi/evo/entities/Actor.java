@@ -175,7 +175,7 @@ abstract public class Actor extends MovingEntity implements Movable {
         return false;
     }
 
-    protected void eat(){
+    protected void eat(Grid grid){
         for (GridCell cell : mContainers){
             List<BaseEntity> foods = cell.getEntities().stream().filter(baseEntity -> !baseEntity.equals(this)
                     && isValidFood(baseEntity.getClass())
@@ -184,10 +184,18 @@ abstract public class Actor extends MovingEntity implements Movable {
                     .collect(Collectors.toList());
 
             for (BaseEntity f : foods){
-                f.clearContainers();
+                if(f instanceof Actor){
+                    Actor actor = (Actor)f;
+                    if (actor.isDead()){
+                        continue;
+                    }
+                }
+
+                updatePosition(grid, f);
 
                 Edible food = (Edible)f;
                 food.digest();
+                f.clearContainers();
 
                 this.mCurrHealth += food.getNutrient();
 
@@ -230,6 +238,22 @@ abstract public class Actor extends MovingEntity implements Movable {
         double newY = pt[1];
 
         return new Point(newX, newY);
+    }
+
+    protected double getViewAngle(){
+        double angle1 = angleBetween2Lines(mViewFocus.getP1(), mViewFocus.getP2(),
+                mViewFocus.getP1(), new Point2D.Double(mViewFocus.getP1().getX(), mViewFocus.getP1().getY() - 100));
+        double angle2 = (360 - Math.abs(angle1)) * (0 - Math.signum(angle1));
+
+        double targetAngle;
+
+        if (angle1 < angle2){
+            targetAngle = Math.abs(angle1);
+        }else{
+            targetAngle = Math.abs(angle2);
+        }
+
+        return targetAngle;
     }
 
     protected double angleBetween2Lines(Point2D A1, Point2D A2, Point2D B1, Point2D B2) {
@@ -282,6 +306,10 @@ abstract public class Actor extends MovingEntity implements Movable {
 
     public int getGen() {
         return mGen;
+    }
+
+    public boolean isDead(){
+        return mDead;
     }
 
     protected Set<Class<? extends BaseEntity>> getFoodClazzez() {

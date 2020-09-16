@@ -1,23 +1,31 @@
 package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import main.java.com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
 import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
+import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
 import main.java.com.github.PeterHausenAoi.evo.flow.Tickable;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
+import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
 
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.*;
 
 public class Herbivore extends Actor implements Tickable, Edible {
     private static final String TAG = Herbivore.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.PURPLE;
+
+    private static final String IMG_CODE = "critter.png";
+    private static final int[] DIRECTION_MAP = {4,3,2,1,0,7,6,5};
 
     private static final String KEY_X = "KEY_X";
     private static final String KEY_Y = "KEY_Y";
@@ -43,20 +51,20 @@ public class Herbivore extends Actor implements Tickable, Edible {
         }
 
         Set<SpeciesParam> params = new HashSet<>();
-        params.add(new SpeciesParam("KEY_X", 0.0, 1900.0, true));
-        params.add(new SpeciesParam("KEY_Y", 0.0, 900.0, true));
-        params.add(new SpeciesParam("KEY_WIDTH", 10.0, 42.0, false));
-        params.add(new SpeciesParam("KEY_HEIGHT", 10.0, 42.0, false));
-        params.add(new SpeciesParam("KEY_ANGLEPERSEC", 1.0, 500.0, false));
-        params.add(new SpeciesParam("KEY_VIEWDISTANCE", 50.0, 500.0, false));
-        params.add(new SpeciesParam("KEY_VIEWANGLE", 20.0, 170.0, false));
-        params.add(new SpeciesParam("KEY_SPEED", 50.0, 500.0, false));
-        params.add(new SpeciesParam("KEY_MAXFLEEDIST", 10.0, 1000.0, false));
-        params.add(new SpeciesParam("KEY_MAXHEALTH", 10.0, 150.0, false));
-        params.add(new SpeciesParam("KEY_AUDIORADIUS", 10.0, 250.0, false));
-        params.add(new SpeciesParam("KEY_STARVATIONRATE", 5.0, 50.0, false));
-        params.add(new SpeciesParam("KEY_FOODPRIORITY", 0.0, 1.0, false));
-        params.add(new SpeciesParam("KEY_FOODWEIGHT", 0.0, 1.0, false));
+        params.add(new SpeciesParam(KEY_X, 0.0, 1900.0, true));
+        params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
+        params.add(new SpeciesParam(KEY_WIDTH, 10.0, 60.0, false));
+        params.add(new SpeciesParam(KEY_HEIGHT, 10.0, 60.0, false));
+        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 50.0, 600.0, false));
+        params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
+        params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 150.0, false));
+        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 400.0, false));
+        params.add(new SpeciesParam(KEY_STARVATIONRATE, 5.0, 50.0, false));
+        params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
+        params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
         mSpeciesDescriptor = new SpeciesDescriptor<>(new HerbivoreEntityBuilder(), params);
 
@@ -69,6 +77,8 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
     private Set<BaseEntity> mPrevRadiusPredatorBatch = new HashSet<>();
     private Set<BaseEntity> mRadiusPredators = new HashSet<>();
+
+    private SpriteSheet mSheet;
 
     public Herbivore(ActorBuilder builder) {
         super(builder);
@@ -100,6 +110,8 @@ public class Herbivore extends Actor implements Tickable, Edible {
                 p.getX().doubleValue(), p.getY().doubleValue());
 
         mDead = false;
+
+        loadSpriteSheet();
     }
 
     public Herbivore(int x, int y, int width, int height) {
@@ -158,6 +170,12 @@ public class Herbivore extends Actor implements Tickable, Edible {
         mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
                 p.getX().doubleValue(), p.getY().doubleValue());
 
+        loadSpriteSheet();
+    }
+
+    protected void loadSpriteSheet(){
+        Image img = ImageFactory.getImage(IMG_CODE, new Resizer(mWidth * 8, mHeight * 8, null));
+        mSheet = new SpriteSheet(img, 8, 3, DIRECTION_MAP);
     }
 
     protected Point getInvertedVector(BaseEntity newPredatorEntity){
@@ -178,8 +196,10 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
     @Override
     public void tick(long frameTime, Grid grid) {
+        updatePosition(grid);
         mLifeTime++;
-        eat();
+
+        eat(grid);
 
         if(starve(frameTime)){
             return;
@@ -360,10 +380,29 @@ public class Herbivore extends Actor implements Tickable, Edible {
             if (mTarget != null) {
                 outOfBounds = mCenter.getX().intValue() < 0 || mCenter.getX().intValue() > 1900
                         || mCenter.getY().intValue() < 0 || mCenter.getY().intValue() > 900;
-            }
 
-            if (outOfBounds){
-                int ddd = 0;
+                if (outOfBounds){
+                    int x = mCenter.getX().intValue();
+                    int y = mCenter.getY().intValue();
+
+                    if (x < 0){
+                        x = 1;
+                    }
+
+                    if (x > 1900){
+                        x = 1899;
+                    }
+
+                    if (y < 0){
+                        y = 1;
+                    }
+
+                    if (y > 900){
+                        y = 899;
+                    }
+
+                    mCenter = new Point(x, y);
+                }
             }
 
             if(mTarget == null || isTargetReached() || targetAcquired || outOfBounds){
@@ -412,8 +451,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
             }
         }
 
-        grid.placeEntity(this);
-        updateAbandonedCells();
+        updatePosition(grid);
     }
 
     @Override
@@ -465,11 +503,6 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
     @Override
     public void draw(GraphicsContext g) {
-        g.setFill(BOX_COLOR);
-        double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
-        double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
-        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
-
         double hpBar = 50.0;
         g.setFill(Color.DARKRED);
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar, 10);
@@ -480,33 +513,49 @@ public class Herbivore extends Actor implements Tickable, Edible {
         g.setFill(Color.YELLOW);
         g.fillText(String.valueOf(mGen), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
 
-        g.setStroke(Color.AQUA);
-        g.setLineWidth(2);
-        g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
+        if (EvoManager.DEBUG_DISPLAY) {
 
-        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
-        g.setLineWidth(2);
-        g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
+            g.setFill(BOX_COLOR);
+            double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
+            double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
+            g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
 
-        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
-        g.setLineWidth(2);
-        g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewClock.getX2(), mViewClock.getY2());
 
-        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
-        g.setLineWidth(2);
-        g.strokeLine(mViewCounter.getX1(), mViewCounter.getY1(), mViewCounter.getX2(), mViewCounter.getY2());
 
-        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
-        g.setLineWidth(2);
-        g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+//        g.fillText(String.valueOf(targetAngle),
+//                mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
 
-        g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
-        g.setLineWidth(2);
-        g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
+            g.setStroke(Color.AQUA);
+            g.setLineWidth(2);
+            g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
 
-        g.setStroke(Color.PINK);
-        g.setLineWidth(2);
-        g.strokeLine(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(), mTarget.getX().doubleValue(), mTarget.getY().doubleValue());
+            g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+            g.setLineWidth(2);
+            g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
+
+            g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+            g.setLineWidth(2);
+            g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewClock.getX2(), mViewClock.getY2());
+
+            g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+            g.setLineWidth(2);
+            g.strokeLine(mViewCounter.getX1(), mViewCounter.getY1(), mViewCounter.getX2(), mViewCounter.getY2());
+
+            g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+            g.setLineWidth(2);
+            g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+
+            g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
+            g.setLineWidth(2);
+            g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
+
+            g.setStroke(Color.PINK);
+            g.setLineWidth(2);
+            g.strokeLine(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(), mTarget.getX().doubleValue(), mTarget.getY().doubleValue());
+        }
+
+        double targetAngle = getViewAngle();
+        g.drawImage(mSheet.getImage(targetAngle), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue());
     }
 
     @Override

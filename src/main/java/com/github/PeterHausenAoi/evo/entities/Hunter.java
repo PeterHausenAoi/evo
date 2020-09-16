@@ -1,13 +1,18 @@
 package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import main.java.com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
 import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
 import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
+import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
 import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
 import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
+import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
+import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
 
 import java.awt.geom.Line2D;
 import java.util.*;
@@ -17,6 +22,9 @@ public class Hunter extends Actor implements Edible{
     private static final String TAG = Hunter.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.YELLOW;
+    private static final int[] DIRECTION_MAP = {5, 4, 3, 6, 2, 7, 0 ,1};
+
+    private static final String IMG_CODE = "hunter.png";
 
     private static final String KEY_X = "KEY_X";
     private static final String KEY_Y = "KEY_Y";
@@ -50,19 +58,19 @@ public class Hunter extends Actor implements Edible{
         params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
         params.add(new SpeciesParam(KEY_WIDTH, 20.0, 60.0, false));
         params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 110.0, false));
-        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 500.0, false));
-        params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 400.0, false));
+        params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 400.0, false));
         params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
-        params.add(new SpeciesParam(KEY_SPEED, 10.0, 600.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 10.0, 400.0, false));
         params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
         params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 200.0, false));
-        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 500.0, false));
-        params.add(new SpeciesParam(KEY_STARVATIONRATE, 20.0, 50.0, false));
+        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 250.0, false));
+        params.add(new SpeciesParam(KEY_STARVATIONRATE, 20.0, 40.0, false));
         params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
         params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
-        params.add(new SpeciesParam(KEY_FIRING_RATE, 10.0, 20.0, false));
-        params.add(new SpeciesParam(KEY_FIRING_RANGE, 50.0, 200.0, false));
+        params.add(new SpeciesParam(KEY_FIRING_RATE, 1.0, 20.0, false));
+        params.add(new SpeciesParam(KEY_FIRING_RANGE, 100.0, 450.0, false));
         params.add(new SpeciesParam(KEY_BULLET_SIZE, 10.0, 30.0, false));
         params.add(new SpeciesParam(KEY_BULLET_SPEED, 200.0, 1000.0, false));
 
@@ -82,6 +90,8 @@ public class Hunter extends Actor implements Edible{
     private long mCoolDownTime;
 
     private List<Bullet> mBullets;
+
+    private SpriteSheet mSheet;
 
     public Hunter(Actor.ActorBuilder builder) {
         super(builder);
@@ -123,6 +133,7 @@ public class Hunter extends Actor implements Edible{
                 p.getX().doubleValue(), p.getY().doubleValue());
 
         mBullets = new ArrayList<>();
+        loadSpriteSheet();
     }
 
     public Hunter(int x, int y, int width, int height) {
@@ -148,10 +159,10 @@ public class Hunter extends Actor implements Edible{
         mAudioRadius = Math.random() * 200 + 10;
         mAudioRadius = 200 + 10;
 
-        mFiringRate = 2.0;
+        mFiringRate = 10.0;
         mFiringRange = 1000.0;
         mBulletsize = 20;
-        mBulletSpeed = 200;
+        mBulletSpeed = 1000;
 
         mBulletTime = 1000 / mFiringRate;
 
@@ -181,6 +192,13 @@ public class Hunter extends Actor implements Edible{
                 p.getX().doubleValue(), p.getY().doubleValue());
 
         mBullets = new ArrayList<>();
+
+        loadSpriteSheet();
+    }
+
+    protected void loadSpriteSheet(){
+        Image img = ImageFactory.getImage(IMG_CODE, new Resizer(mWidth * 8, mHeight * 8, null));
+        mSheet = new SpriteSheet(img, 8, 1, DIRECTION_MAP);
     }
 
     public boolean isDead() {
@@ -188,7 +206,7 @@ public class Hunter extends Actor implements Edible{
     }
 
     @Override
-    protected void eat(){
+    protected void eat(Grid grid){
         Set<Bullet> delBullets = new HashSet<>();
 
         for (Bullet bullet : mBullets){
@@ -200,10 +218,18 @@ public class Hunter extends Actor implements Edible{
                         .collect(Collectors.toList());
 
                 for (BaseEntity f : foods){
-                    f.clearContainers();
+                    if(f instanceof Actor){
+                        Actor actor = (Actor)f;
+                        if (actor.isDead()){
+                            continue;
+                        }
+                    }
+
+                    updatePosition(grid, f);
 
                     Edible food = (Edible)f;
                     food.digest();
+                    f.clearContainers();
 
                     this.mCurrHealth += food.getNutrient();
 
@@ -226,7 +252,37 @@ public class Hunter extends Actor implements Edible{
     }
 
     @Override
+    public void updatePosition(Grid grid){
+        super.updatePosition(grid);
+
+        mBullets.forEach(bullet -> bullet.updatePosition(grid));
+    }
+
+    @Override
+    public boolean starve(long frameTime){
+        mCurrHealth -= mStarvationRate / 1000 * frameTime;
+
+        if(mCurrHealth <= 0){
+//            Log.doLog(TAG, "STARVED");
+            mDead = true;
+
+            mBullets.forEach(BaseEntity::clearContainers);
+            mBullets.clear();
+
+            for (GridCell cell : mContainers){
+                cell.removeEntity(this);
+            }
+
+            mContainers.clear();
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public void tick(long frameTime, Grid grid) {
+        updatePosition(grid);
         mLifeTime++;
 
         Set<Bullet> mDelBullets = new HashSet<>();
@@ -241,7 +297,7 @@ public class Hunter extends Actor implements Edible{
         mDelBullets.forEach(Bullet::clearContainers);
         mBullets.removeAll(mDelBullets);
 
-        eat();
+        eat(grid);
 
         if(starve(frameTime)){
             return;
@@ -338,8 +394,7 @@ public class Hunter extends Actor implements Edible{
             bullet.updateAbandonedCells();
         });
 
-        grid.placeEntity(this);
-        updateAbandonedCells();
+        updatePosition(grid);
     }
 
     @Override
@@ -349,7 +404,7 @@ public class Hunter extends Actor implements Edible{
         clazzes.add(Herbivore.class);
         clazzes.add(Carnivore.class);
         // TODO cannibalism rocks
-        clazzes.add(Hunter.class);
+//        clazzes.add(Hunter.class);
 
         mFoodClazzez = Collections.unmodifiableSet(clazzes);
     }
@@ -386,11 +441,6 @@ public class Hunter extends Actor implements Edible{
 
     @Override
     public void draw(GraphicsContext g) {
-        g.setFill(BOX_COLOR);
-        double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
-        double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
-        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
-
         double hpBar = 50.0;
         g.setFill(Color.DARKRED);
         g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 20, hpBar, 10);
@@ -401,35 +451,46 @@ public class Hunter extends Actor implements Edible{
         g.setFill(Color.YELLOW);
         g.fillText(String.valueOf(mGen), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
 
-        g.setStroke(Color.AQUA);
-        g.setLineWidth(2);
-        g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
+        if (EvoManager.DEBUG_DISPLAY) {
+            g.setFill(BOX_COLOR);
+            double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
+            double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
+            g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
 
-        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
-        g.setLineWidth(2);
-        g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
 
-        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
-        g.setLineWidth(2);
-        g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewClock.getX2(), mViewClock.getY2());
+            g.setStroke(Color.AQUA);
+            g.setLineWidth(2);
+            g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
 
-        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
-        g.setLineWidth(2);
-        g.strokeLine(mViewCounter.getX1(), mViewCounter.getY1(), mViewCounter.getX2(), mViewCounter.getY2());
+            g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+            g.setLineWidth(2);
+            g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
 
-        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
-        g.setLineWidth(2);
-        g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+            g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+            g.setLineWidth(2);
+            g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewClock.getX2(), mViewClock.getY2());
 
-        g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
-        g.setLineWidth(2);
-        g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
+            g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+            g.setLineWidth(2);
+            g.strokeLine(mViewCounter.getX1(), mViewCounter.getY1(), mViewCounter.getX2(), mViewCounter.getY2());
 
-        g.setStroke(Color.PINK);
-        g.setLineWidth(2);
-        g.strokeLine(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(), mTarget.getX().doubleValue(), mTarget.getY().doubleValue());
+            g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+            g.setLineWidth(2);
+            g.strokeLine(mViewFocus.getX2(), mViewFocus.getY2(), mViewCounter.getX2(), mViewCounter.getY2());
+
+            g.setStroke(mTargetEntity == null ? Color.GREY : Color.RED);
+            g.setLineWidth(2);
+            g.strokeOval(mCenter.getX().doubleValue() - mAudioRadius, mCenter.getY().doubleValue() - mAudioRadius, mAudioRadius * 2, mAudioRadius * 2);
+
+            g.setStroke(Color.PINK);
+            g.setLineWidth(2);
+            g.strokeLine(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(), mTarget.getX().doubleValue(), mTarget.getY().doubleValue());
+        }
 
         mBullets.forEach(bullet -> bullet.draw(g));
+
+        double targetAngle = getViewAngle();
+        g.drawImage(mSheet.getImage(targetAngle), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue());
     }
 
     @Override
@@ -441,6 +502,7 @@ public class Hunter extends Actor implements Edible{
     public void digest() {
         mCurrHealth = 0;
         mDead = true;
+
 
         mBullets.forEach(BaseEntity::clearContainers);
 

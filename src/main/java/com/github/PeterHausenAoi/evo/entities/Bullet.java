@@ -1,16 +1,20 @@
 package main.java.com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-
-import java.awt.geom.Line2D;
-import java.util.ArrayList;
+import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
+import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
 
 
 public class Bullet extends MovingEntity {
     private static final String TAG = Bullet.class.getSimpleName();
 
     private static final Color BOX_COLOR = Color.BLANCHEDALMOND;
+    private static final String IMG_CODE = "fireball.png";
+
+    private Image mImage;
 
     public Bullet(int x, int y, int width, int height, Point target, double speed) {
         super(x, y, width, height);
@@ -34,14 +38,20 @@ public class Bullet extends MovingEntity {
         mVect = new Point(ratX, ratY);
 
         mTarget = new Point(target.getX().intValue() + mVect.getX().intValue(), target.getY().intValue() + mVect.getY().intValue());
+        mImage = ImageFactory.getImage(IMG_CODE, new Resizer(width, height, null));
     }
 
     @Override
     public void draw(GraphicsContext g) {
-        g.setFill(BOX_COLOR);
-        double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
-        double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
-        g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
+        if (EvoManager.DEBUG_DISPLAY){
+            g.setFill(BOX_COLOR);
+
+            double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
+            double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
+            g.fillRect(mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue(), width, height);
+        }
+
+        g.drawImage(mImage, mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue());
     }
 
 

@@ -8,7 +8,7 @@ import java.util.*;
 public class EvolutionChamber<T extends Actor> {
     private static final String TAG = EvolutionChamber.class.getSimpleName();
 
-    private static final Integer DEF_POPULATION_SIZE = 50;
+    private static final Integer DEF_POPULATION_SIZE = 100;
     private static final Double DEF_MUTATION_RATE = 0.05D;
 
     private Integer mPopulationSize;
@@ -77,6 +77,8 @@ public class EvolutionChamber<T extends Actor> {
             Specimen newSpec = mom.crossover(dad, mom, mMutationRate, mSpeciesDescriptor.getParams());
             newPop.add(mSpeciesDescriptor.getActorBuilder().buildEntity(newSpec));
         }
+
+        mGenSeq++;
 
         return newPop;
     }

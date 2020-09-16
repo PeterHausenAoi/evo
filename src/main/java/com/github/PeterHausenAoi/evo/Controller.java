@@ -1,11 +1,19 @@
 package main.java.com.github.PeterHausenAoi.evo;
 
 import javafx.animation.AnimationTimer;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyEvent;
 import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
+import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
+import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
+import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
 import main.java.com.github.PeterHausenAoi.evo.util.Log;
 
 import java.awt.*;
@@ -29,7 +37,11 @@ public class Controller {
     @FXML
     private void initialize(){
         Log.doLog(TAG, "initialize");
-
+        mAnimCanvas.setOnMouseClicked(event -> {
+            Log.doLog(TAG, " sanyi");
+            GridCell cell = mManager.getCell((int)event.getX(), (int)event.getY());
+            int kkkk = 0;
+        });
         GraphicsContext g = Controller.this.mAnimCanvas.getGraphicsContext2D();
         mManager = new EvoManager(g, (int)mAnimCanvas.getWidth(), (int)mAnimCanvas.getHeight(), 50, 60);
 
@@ -53,11 +65,11 @@ public class Controller {
 //            public void run(){
 //                GraphicsContext g = Controller.this.mAnimCanvas.getGraphicsContext2D();
 //
-//                int colCount = 8;
+//                int colCount = 4;
 //                int rowCount = 8;
 //
 //                List<Image[]> phases = new ArrayList<>();
-//                Image img = new Image("hunter.png");
+//                Image img = new Image("stella_walk_1.png");
 //
 //                int width = (int)img.getWidth() / colCount;
 //                int height = (int)img.getHeight() / rowCount;
@@ -80,7 +92,7 @@ public class Controller {
 //                int currPhase = 0;
 //                BufferedImage sprite = null;
 //                try {
-//                    sprite = ImageIO.read(getClass().getClassLoader().getResourceAsStream("hunter.png"));
+//                    sprite = ImageIO.read(getClass().getClassLoader().getResourceAsStream("stella_walk_1.png"));
 //                } catch (Exception e) {
 //                    System.out.println("ERROR: could not load file: " + "critter.png");
 //                }
@@ -90,12 +102,27 @@ public class Controller {
 //
 //                img = SwingFXUtils.toFXImage(sprite, null);
 //
+//                Image testImg = ImageFactory.getImage("stella_walk_1.png", new Resizer(400, 500, null));
+//
+//                int[] DIRECTION_MAP = {4, 6, 2, 0, 3, 5, 7, 1};
+//                SpriteSheet ss = new SpriteSheet(testImg, 4, 1, DIRECTION_MAP);
+//
 //                while(true){
 //                    g.clearRect(0, 0, mAnimCanvas.getWidth(), mAnimCanvas.getHeight());
 //
 //                    /*g.drawImage(img, 50,50);*/
-//                    g.drawImage(img, 50,50);
+////                    g.drawImage(img, 50,50);
 //
+//                    g.drawImage(ss.getImage(0), 100,100);
+//                    g.drawImage(ss.getImage(45), 100,150);
+//                    g.drawImage(ss.getImage(90), 100,200);
+//                    g.drawImage(ss.getImage(135), 100,250);
+//                    g.drawImage(ss.getImage(180), 100,300);
+//                    g.drawImage(ss.getImage(225), 100,350);
+//                    g.drawImage(ss.getImage(270), 100,400);
+//                    g.drawImage(ss.getImage(315), 100,450);
+//
+////                    g.drawImage(testImg, 700, 100);
 //                    int startX = 500;
 //                    int startY = 300;
 //
@@ -114,9 +141,8 @@ public class Controller {
 //                        currPhase = 0;
 //                    }
 //
-//
 //                    try {
-//                        Thread.sleep(1000 / 30);
+//                        Thread.sleep(1000 / 15);
 //                    } catch (InterruptedException e) {
 //                        e.printStackTrace();
 //                    }
@@ -127,6 +153,10 @@ public class Controller {
 //        };
 //
 //        thread.start();
+    }
+
+    public void handleKeyEvent(KeyEvent event){
+        EvoManager.DEBUG_DISPLAY = !EvoManager.DEBUG_DISPLAY;
     }
 
     public BufferedImage scaleImage(BufferedImage original, double scale) {
