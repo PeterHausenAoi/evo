@@ -8,7 +8,7 @@ import java.util.*;
 public class EvolutionChamber<T extends Actor> {
     private static final String TAG = EvolutionChamber.class.getSimpleName();
 
-    private static final Integer DEF_POPULATION_SIZE = 50;
+    private static final Integer DEF_POPULATION_SIZE = 100;
     private static final Double DEF_MUTATION_RATE = 0.02D;
 
     private Class<T> mClazz;
@@ -58,6 +58,9 @@ public class EvolutionChamber<T extends Actor> {
     }
 
     private void generateGen(){
+        Specimen spec = mSpecimens.stream().sorted(Comparator.comparingDouble(Specimen::getFitness).reversed()).findFirst().orElseGet(null);
+        Log.doLog(TAG, "Best " + mSpeciesDescriptor.getClazz().getSimpleName() + " " + mGenSeq + " fitness: " + spec.getFitness());
+
         List<Specimen> currSpecimens = new ArrayList<>(mSpecimens);
         mSpecimens = new ArrayList<>();
 
@@ -68,7 +71,7 @@ public class EvolutionChamber<T extends Actor> {
     }
 
     private List<T> reproduction(List<List<Specimen>> matingPool){
-        Log.doLog(TAG, " Reproduction in progress for " + mSpeciesDescriptor.getClazz().getSimpleName() + " " + mGenSeq + "....");
+        Log.doLog(TAG, "Reproduction in progress for " + mSpeciesDescriptor.getClazz().getSimpleName() + " " + mGenSeq + "....");
 
         List<T> newPop = new ArrayList<>();
 

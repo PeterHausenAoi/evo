@@ -26,11 +26,11 @@ public class EvoManager {
     private long mSubFrameTime;
     private long mTickCount;
 
-    private long mFoodSpawnTickCount = 30 * 1;
+    private long mFoodSpawnTickCount = (int)(30.0 * 0.75);
 
-    private long mBaseHerbSpawnTime = (int)(30.0 * 10);
-    private long mBaseCarnSpawnTime = (int)(30.0 * 45.0);
-    private long mBaseHunterSpawnTime = (int)(30.0 * 60.0);
+    private long mBaseHerbSpawnTime = (int)(30.0 * 15);
+    private long mBaseCarnSpawnTime = (int)(30.0 * 80);
+    private long mBaseHunterSpawnTime = (int)(30.0 * 100);
 
     private long mCurrHerbSpawnTime = mBaseHerbSpawnTime;
     private long mCurrCarnSpawnTime = mBaseCarnSpawnTime;
