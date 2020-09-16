@@ -3,10 +3,7 @@ package main.java.com.github.PeterHausenAoi.evo.flow;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import main.java.com.github.PeterHausenAoi.evo.entities.Carnivore;
-import main.java.com.github.PeterHausenAoi.evo.entities.Herbivore;
-import main.java.com.github.PeterHausenAoi.evo.entities.Food;
-import main.java.com.github.PeterHausenAoi.evo.entities.Hunter;
+import main.java.com.github.PeterHausenAoi.evo.entities.*;
 import main.java.com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
 import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
 import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
@@ -31,9 +28,9 @@ public class EvoManager {
 
     private long mFoodSpawnTickCount = 30 * 1;
 
-    private long mBaseHerbSpawnTime = 30 * 3;
-    private long mBaseCarnSpawnTime = 30 * 5;
-    private long mBaseHunterSpawnTime = 30 * 4;
+    private long mBaseHerbSpawnTime = (int)(30.0 * 10);
+    private long mBaseCarnSpawnTime = (int)(30.0 * 45.0);
+    private long mBaseHunterSpawnTime = (int)(30.0 * 60.0);
 
     private long mCurrHerbSpawnTime = mBaseHerbSpawnTime;
     private long mCurrCarnSpawnTime = mBaseCarnSpawnTime;
@@ -160,6 +157,18 @@ public class EvoManager {
 //        mCurrHunterSpawnTime = mHunters.size() == 0 ? mBaseHunterSpawnTime : mBaseHunterSpawnTime / mHunters.size();
     }
 
+    private long countFoodClazz(List<Edible> eds, List<Class<? extends BaseEntity>> foodClazzez){
+        return eds.stream().filter(edible -> {
+            for (Class<?> clazz : foodClazzez){
+                if(edible.getClass().isAssignableFrom(clazz)){
+                    return true;
+                }
+            }
+
+            return false;
+        }).count();
+    }
+
     private void spawnHerbivore(){
 //        Log.doLog(TAG, "spawnHerbivore");
         Herbivore herb = mHerbCh.getNextSpecimen();
@@ -187,7 +196,7 @@ public class EvoManager {
         }
 
 //        Log.doLog(TAG, "spawnFood");
-        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 30,30);
+        Food f = new Food((int)(Math.random() * mWidth), (int)(Math.random() * mHeight), 40,40);
         f.setHandler(new EvoManager.FoodHandler(f));
 
         mGrid.placeEntity(f);
@@ -215,6 +224,21 @@ public class EvoManager {
         mCarnTickCount++;
         mHunterTickCount++;
 
+        List<Edible> edibles = new ArrayList<>();
+
+        edibles.addAll(mFoods);
+        edibles.addAll(mHerbivores);
+        edibles.addAll(mCarnivores);
+        edibles.addAll(mHunters);
+
+        long herbFood = countFoodClazz(edibles, Herbivore.FOOD_CLAZZEZ);
+        long carnFood = countFoodClazz(edibles, Carnivore.FOOD_CLAZZEZ);
+        long hunterFood = countFoodClazz(edibles, Hunter.FOOD_CLAZZEZ);
+
+        mCurrHerbSpawnTime = herbFood == 0 ? mBaseHerbSpawnTime : mBaseHerbSpawnTime / herbFood;
+        mCurrCarnSpawnTime = carnFood == 0 ? mBaseCarnSpawnTime : mBaseCarnSpawnTime / carnFood;
+        mCurrHunterSpawnTime = hunterFood == 0 ? mBaseHunterSpawnTime : mBaseHunterSpawnTime / hunterFood;
+
         if(mTickCount % (mFoodSpawnTickCount) == 0){
 //            Log.doLog(TAG, "|" + (System.currentTimeMillis() - curr));
             curr = System.currentTimeMillis();
@@ -222,17 +246,17 @@ public class EvoManager {
         }
 
 
-        if(mHerbTickCount >= mCurrHerbSpawnTime && mHerbivores.size() < 100){
+        if(mHerbTickCount >= mCurrHerbSpawnTime){
             spawnHerbivore();
             mHerbTickCount = 0;
         }
 
-        if(mCarnTickCount    >= mCurrCarnSpawnTime && mCarnivores.size() < 100){
+        if(mCarnTickCount    >= mCurrCarnSpawnTime){
             spawnCarnivore();
             mCarnTickCount = 0;
         }
 
-        if(mHunterTickCount >= mCurrHunterSpawnTime && mHunters.size() < 100){
+        if(mHunterTickCount >= mCurrHunterSpawnTime){
             spawnHunter();
             mHunterTickCount = 0;
         }

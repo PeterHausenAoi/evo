@@ -8,8 +8,10 @@ import java.util.*;
 public class EvolutionChamber<T extends Actor> {
     private static final String TAG = EvolutionChamber.class.getSimpleName();
 
-    private static final Integer DEF_POPULATION_SIZE = 100;
-    private static final Double DEF_MUTATION_RATE = 0.05D;
+    private static final Integer DEF_POPULATION_SIZE = 50;
+    private static final Double DEF_MUTATION_RATE = 0.02D;
+
+    private Class<T> mClazz;
 
     private Integer mPopulationSize;
     private Double mMutationRate;
@@ -66,7 +68,7 @@ public class EvolutionChamber<T extends Actor> {
     }
 
     private List<T> reproduction(List<List<Specimen>> matingPool){
-        Log.doLog(TAG, " Reproduction in progress for gen " + mGenSeq + "....");
+        Log.doLog(TAG, " Reproduction in progress for " + mSpeciesDescriptor.getClazz().getSimpleName() + " " + mGenSeq + "....");
 
         List<T> newPop = new ArrayList<>();
 

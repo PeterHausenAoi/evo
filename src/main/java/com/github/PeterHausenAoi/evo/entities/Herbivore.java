@@ -16,7 +16,6 @@ import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
 import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
 
 import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.util.*;
 
 public class Herbivore extends Actor implements Tickable, Edible {
@@ -24,6 +23,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
     private static final Color BOX_COLOR = Color.PURPLE;
 
+    public static final List<Class<? extends BaseEntity>> FOOD_CLAZZEZ = Arrays.asList(Food.class);
     private static final String IMG_CODE = "critter.png";
     private static final int[] DIRECTION_MAP = {4,3,2,1,0,7,6,5};
 
@@ -53,12 +53,12 @@ public class Herbivore extends Actor implements Tickable, Edible {
         Set<SpeciesParam> params = new HashSet<>();
         params.add(new SpeciesParam(KEY_X, 0.0, 1900.0, true));
         params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
-        params.add(new SpeciesParam(KEY_WIDTH, 10.0, 60.0, false));
-        params.add(new SpeciesParam(KEY_HEIGHT, 10.0, 60.0, false));
+        params.add(new SpeciesParam(KEY_WIDTH, 10.0, 80.0, false));
+        params.add(new SpeciesParam(KEY_HEIGHT, 10.0, 80.0, false));
         params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 500.0, false));
         params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
         params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
-        params.add(new SpeciesParam(KEY_SPEED, 50.0, 600.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 50.0, 700.0, false));
         params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
         params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 150.0, false));
         params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 400.0, false));
@@ -66,7 +66,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
         params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
         params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
-        mSpeciesDescriptor = new SpeciesDescriptor<>(new HerbivoreEntityBuilder(), params);
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new HerbivoreEntityBuilder(), params, Herbivore.class);
 
         return mSpeciesDescriptor;
     }
@@ -456,9 +456,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
     @Override
     protected void initFoodClazzez() {
-        Set<Class<? extends BaseEntity>> clazzes = new HashSet<>();
-        clazzes.add(Food.class);
-        mFoodClazzez = Collections.unmodifiableSet(clazzes);
+        mFoodClazzez = Collections.unmodifiableSet(new HashSet<>(FOOD_CLAZZEZ));
     }
 
     @Override

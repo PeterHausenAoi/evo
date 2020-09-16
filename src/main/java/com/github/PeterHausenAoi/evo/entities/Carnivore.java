@@ -22,6 +22,7 @@ public class Carnivore extends Actor implements Edible{
 
     private static final Color BOX_COLOR = Color.BLUE;
 
+    public static final List<Class<? extends BaseEntity>> FOOD_CLAZZEZ = Arrays.asList(Herbivore.class, Hunter.class);
     private static final String IMG_CODE = "stella_walk_1.png";
     private static final int[] DIRECTION_MAP = {4, 6, 2, 0, 3, 5, 7, 1};
 
@@ -50,12 +51,12 @@ public class Carnivore extends Actor implements Edible{
         Set<SpeciesParam> params = new HashSet<>();
         params.add(new SpeciesParam(KEY_X, 0.0, 1900.0, true));
         params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
-        params.add(new SpeciesParam(KEY_WIDTH, 20.0, 60.0, false));
-        params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 110.0, false));
+        params.add(new SpeciesParam(KEY_WIDTH, 20.0, 100.0, false));
+        params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 200.0, false));
         params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 450.0, false));
         params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
         params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
-        params.add(new SpeciesParam(KEY_SPEED, 10.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 10.0, 600.0, false));
         params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
         params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 200.0, false));
         params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 400.0, false));
@@ -63,7 +64,7 @@ public class Carnivore extends Actor implements Edible{
         params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
         params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
-        mSpeciesDescriptor = new SpeciesDescriptor<>(new CarnivoreEntityBuilder(), params);
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new CarnivoreEntityBuilder(), params, Carnivore.class);
 
         return mSpeciesDescriptor;
     }
@@ -240,10 +241,7 @@ public class Carnivore extends Actor implements Edible{
 
     @Override
     protected void initFoodClazzez() {
-        Set<Class<? extends BaseEntity>> clazzes = new HashSet<>();
-        clazzes.add(Herbivore.class);
-        clazzes.add(Hunter.class);
-        mFoodClazzez = Collections.unmodifiableSet(clazzes);
+        mFoodClazzez = Collections.unmodifiableSet(new HashSet<>(FOOD_CLAZZEZ));
     }
 
     @Override

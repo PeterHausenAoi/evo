@@ -21,11 +21,12 @@ import java.util.stream.Collectors;
 public class Hunter extends Actor implements Edible{
     private static final String TAG = Hunter.class.getSimpleName();
 
+    public static final List<Class<? extends BaseEntity>> FOOD_CLAZZEZ = Arrays.asList(Herbivore.class, Carnivore.class);
+
     private static final Color BOX_COLOR = Color.YELLOW;
     private static final int[] DIRECTION_MAP = {5, 4, 3, 6, 2, 7, 0 ,1};
 
     private static final String IMG_CODE = "hunter.png";
-
     private static final String KEY_X = "KEY_X";
     private static final String KEY_Y = "KEY_Y";
     private static final String KEY_WIDTH = "KEY_WIDTH";
@@ -39,11 +40,12 @@ public class Hunter extends Actor implements Edible{
     private static final String KEY_AUDIORADIUS = "KEY_AUDIORADIUS";
     private static final String KEY_STARVATIONRATE = "KEY_STARVATIONRATE";
     private static final String KEY_FOODPRIORITY = "KEY_FOODPRIORITY";
-    private static final String KEY_FOODWEIGHT = "KEY_FOODWEIGHT";
 
+    private static final String KEY_FOODWEIGHT = "KEY_FOODWEIGHT";
     private static final String KEY_FIRING_RATE = "FIRING_RATE";
     private static final String KEY_FIRING_RANGE = "FIRING_RANGE";
     private static final String KEY_BULLET_SIZE = "KEY_BULLET_SIZE";
+
     private static final String KEY_BULLET_SPEED = "KEY_BULLET_SPEED";
 
     private static SpeciesDescriptor<Hunter> mSpeciesDescriptor;
@@ -56,8 +58,8 @@ public class Hunter extends Actor implements Edible{
         Set<SpeciesParam> params = new HashSet<>();
         params.add(new SpeciesParam(KEY_X, 0.0, 1900.0, true));
         params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
-        params.add(new SpeciesParam(KEY_WIDTH, 20.0, 60.0, false));
-        params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 110.0, false));
+        params.add(new SpeciesParam(KEY_WIDTH, 20.0, 100.0, false));
+        params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 200.0, false));
         params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 400.0, false));
         params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 400.0, false));
         params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
@@ -74,17 +76,17 @@ public class Hunter extends Actor implements Edible{
         params.add(new SpeciesParam(KEY_BULLET_SIZE, 10.0, 30.0, false));
         params.add(new SpeciesParam(KEY_BULLET_SPEED, 200.0, 1000.0, false));
 
-        mSpeciesDescriptor = new SpeciesDescriptor<>(new HunterEntityBuilder(), params);
+        mSpeciesDescriptor = new SpeciesDescriptor<>(new HunterEntityBuilder(), params, Hunter.class);
 
         return mSpeciesDescriptor;
     }
 
     private double mNutrient;
-
     private double mFiringRate;
     private double mBulletTime;
     private double mFiringRange;
     private double mBulletSpeed;
+
     private double mBulletsize;
 
     private long mCoolDownTime;
@@ -399,14 +401,7 @@ public class Hunter extends Actor implements Edible{
 
     @Override
     protected void initFoodClazzez() {
-        Set<Class<? extends BaseEntity>> clazzes = new HashSet<>();
-
-        clazzes.add(Herbivore.class);
-        clazzes.add(Carnivore.class);
-        // TODO cannibalism rocks
-//        clazzes.add(Hunter.class);
-
-        mFoodClazzez = Collections.unmodifiableSet(clazzes);
+        mFoodClazzez = Collections.unmodifiableSet(new HashSet<>(FOOD_CLAZZEZ));
     }
 
     @Override

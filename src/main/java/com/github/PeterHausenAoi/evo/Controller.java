@@ -15,6 +15,8 @@ import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
 import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
 import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
 import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import main.java.com.github.PeterHausenAoi.evo.util.LoggerService;
+import main.java.com.github.PeterHausenAoi.evo.util.TextLogger;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -42,6 +44,12 @@ public class Controller {
             GridCell cell = mManager.getCell((int)event.getX(), (int)event.getY());
             int kkkk = 0;
         });
+
+        mLogArea.setEditable(false);
+        LoggerService.getInstance().addHandler(new TextLogger(mLogArea));
+
+        mAnimCanvas.setFocusTraversable(true);
+
         GraphicsContext g = Controller.this.mAnimCanvas.getGraphicsContext2D();
         mManager = new EvoManager(g, (int)mAnimCanvas.getWidth(), (int)mAnimCanvas.getHeight(), 50, 60);
 
