@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.evolution;
+package com.github.PeterHausenAoi.evo.evolution;
 
 public class SpeciesParam {
     private static final String TAG = SpeciesParam.class.getSimpleName();

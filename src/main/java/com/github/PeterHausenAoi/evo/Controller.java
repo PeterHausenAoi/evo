@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo;
+package com.github.PeterHausenAoi.evo;
 
 import javafx.animation.AnimationTimer;
 import javafx.embed.swing.SwingFXUtils;
@@ -9,14 +9,14 @@ import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyEvent;
-import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
-import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
-import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
-import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
-import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
-import main.java.com.github.PeterHausenAoi.evo.util.LoggerService;
-import main.java.com.github.PeterHausenAoi.evo.util.TextLogger;
+import com.github.PeterHausenAoi.evo.flow.EvoManager;
+import com.github.PeterHausenAoi.evo.flow.GridCell;
+import com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import com.github.PeterHausenAoi.evo.graphics.Resizer;
+import com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
+import com.github.PeterHausenAoi.evo.util.Log;
+import com.github.PeterHausenAoi.evo.util.LoggerService;
+import com.github.PeterHausenAoi.evo.util.TextLogger;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;

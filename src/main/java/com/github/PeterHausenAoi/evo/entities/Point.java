@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.entities;
+package com.github.PeterHausenAoi.evo.entities;
 
 public class Point {
     private static final String TAG = Point.class.getSimpleName();

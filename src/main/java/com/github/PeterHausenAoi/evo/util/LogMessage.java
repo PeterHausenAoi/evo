@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.util;
+package com.github.PeterHausenAoi.evo.util;
 
 public class LogMessage implements ServiceMessage{
     private static final String TAG = LogMessage.class.getSimpleName();

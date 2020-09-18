@@ -1,6 +1,6 @@
-package main.java.com.github.PeterHausenAoi.evo.evolution;
+package com.github.PeterHausenAoi.evo.evolution;
 
-import main.java.com.github.PeterHausenAoi.evo.entities.Actor;
+import com.github.PeterHausenAoi.evo.entities.Actor;
 
 import java.util.Set;
 

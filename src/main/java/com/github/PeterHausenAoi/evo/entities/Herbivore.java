@@ -1,19 +1,19 @@
-package main.java.com.github.PeterHausenAoi.evo.entities;
+package com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import main.java.com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
-import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
-import main.java.com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
-import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
-import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
-import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
-import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
-import main.java.com.github.PeterHausenAoi.evo.flow.Tickable;
-import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
-import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
-import main.java.com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
+import com.github.PeterHausenAoi.evo.evolution.EntityBuilder;
+import com.github.PeterHausenAoi.evo.evolution.SpeciesDescriptor;
+import com.github.PeterHausenAoi.evo.evolution.SpeciesParam;
+import com.github.PeterHausenAoi.evo.evolution.Specimen;
+import com.github.PeterHausenAoi.evo.flow.EvoManager;
+import com.github.PeterHausenAoi.evo.flow.Grid;
+import com.github.PeterHausenAoi.evo.flow.GridCell;
+import com.github.PeterHausenAoi.evo.flow.Tickable;
+import com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import com.github.PeterHausenAoi.evo.graphics.Resizer;
+import com.github.PeterHausenAoi.evo.graphics.SpriteSheet;
 
 import java.awt.geom.Line2D;
 import java.util.*;

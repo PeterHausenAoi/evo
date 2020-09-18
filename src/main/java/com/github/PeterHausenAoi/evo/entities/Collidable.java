@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.entities;
+package com.github.PeterHausenAoi.evo.entities;
 
 import java.awt.geom.Line2D;
 import java.util.List;

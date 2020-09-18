@@ -1,6 +1,6 @@
-package main.java.com.github.PeterHausenAoi.evo.evolution;
+package com.github.PeterHausenAoi.evo.evolution;
 
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import com.github.PeterHausenAoi.evo.util.Log;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo;
+package com.github.PeterHausenAoi.evo;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -8,9 +8,12 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import com.github.PeterHausenAoi.evo.util.Log;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 
 public class Main extends Application {
@@ -22,17 +25,14 @@ public class Main extends Application {
         Controller ctrl = new Controller();
         loader.setController(ctrl);
 
-        URL path = this.getClass().getResource("sample.fxml");
+        InputStream is = getClass().getClassLoader().getResourceAsStream("sample.fxml");
 
-        if(path == null){
+        if(is == null){
             Log.doLog(Main.class.getSimpleName(), "Anim view not found.");
             System.exit(-1);
         }
 
-        String fxmlDocPath = path.getPath();
-        FileInputStream fxmlStream = new FileInputStream(fxmlDocPath);
-
-        VBox root = loader.load(fxmlStream);
+        VBox root = loader.load(is);
         root.setPadding(new Insets(10,10,10,10));
         Scene scene = new Scene(root);
 

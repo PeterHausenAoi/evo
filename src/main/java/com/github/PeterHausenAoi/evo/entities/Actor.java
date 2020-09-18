@@ -1,8 +1,8 @@
-package main.java.com.github.PeterHausenAoi.evo.entities;
+package com.github.PeterHausenAoi.evo.entities;
 
-import main.java.com.github.PeterHausenAoi.evo.evolution.Specimen;
-import main.java.com.github.PeterHausenAoi.evo.flow.Grid;
-import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
+import com.github.PeterHausenAoi.evo.evolution.Specimen;
+import com.github.PeterHausenAoi.evo.flow.Grid;
+import com.github.PeterHausenAoi.evo.flow.GridCell;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;

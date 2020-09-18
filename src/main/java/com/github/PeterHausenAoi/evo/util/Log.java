@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.util;
+package com.github.PeterHausenAoi.evo.util;
 
 public class Log {
     private static final String TAG = Log.class.getSimpleName();

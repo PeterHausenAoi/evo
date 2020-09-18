@@ -1,8 +1,8 @@
-package main.java.com.github.PeterHausenAoi.evo.graphics;
+package com.github.PeterHausenAoi.evo.graphics;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import com.github.PeterHausenAoi.evo.util.Log;
 
 public class SpriteSheet {
     private static final String TAG = SpriteSheet.class.getSimpleName();

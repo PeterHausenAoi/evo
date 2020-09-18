@@ -1,11 +1,11 @@
-package main.java.com.github.PeterHausenAoi.evo.flow;
+package com.github.PeterHausenAoi.evo.flow;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import main.java.com.github.PeterHausenAoi.evo.entities.BaseEntity;
-import main.java.com.github.PeterHausenAoi.evo.entities.Collidable;
-import main.java.com.github.PeterHausenAoi.evo.entities.Point;
-import main.java.com.github.PeterHausenAoi.evo.graphics.Drawable;
+import com.github.PeterHausenAoi.evo.entities.BaseEntity;
+import com.github.PeterHausenAoi.evo.entities.Collidable;
+import com.github.PeterHausenAoi.evo.entities.Point;
+import com.github.PeterHausenAoi.evo.graphics.Drawable;
 
 import java.awt.geom.Line2D;
 import java.util.ArrayList;

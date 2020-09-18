@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.graphics;
+package com.github.PeterHausenAoi.evo.graphics;
 
 import javafx.scene.canvas.GraphicsContext;
 

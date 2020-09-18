@@ -1,12 +1,12 @@
-package main.java.com.github.PeterHausenAoi.evo.flow;
+package com.github.PeterHausenAoi.evo.flow;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import main.java.com.github.PeterHausenAoi.evo.entities.*;
-import main.java.com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
-import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
-import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
+import com.github.PeterHausenAoi.evo.entities.*;
+import com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
+import com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import com.github.PeterHausenAoi.evo.graphics.Resizer;
 
 import java.util.ArrayList;
 import java.util.List;

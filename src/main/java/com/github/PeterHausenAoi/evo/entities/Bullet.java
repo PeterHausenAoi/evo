@@ -1,11 +1,11 @@
-package main.java.com.github.PeterHausenAoi.evo.entities;
+package com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import main.java.com.github.PeterHausenAoi.evo.flow.EvoManager;
-import main.java.com.github.PeterHausenAoi.evo.graphics.ImageFactory;
-import main.java.com.github.PeterHausenAoi.evo.graphics.Resizer;
+import com.github.PeterHausenAoi.evo.flow.EvoManager;
+import com.github.PeterHausenAoi.evo.graphics.ImageFactory;
+import com.github.PeterHausenAoi.evo.graphics.Resizer;
 
 
 public class Bullet extends MovingEntity {

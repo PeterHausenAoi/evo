@@ -1,12 +1,13 @@
-package main.java.com.github.PeterHausenAoi.evo.graphics;
+package com.github.PeterHausenAoi.evo.graphics;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import main.java.com.github.PeterHausenAoi.evo.util.Log;
+import com.github.PeterHausenAoi.evo.util.Log;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,8 +50,15 @@ public class ImageFactory {
 
     private BufferedImage loadImage(String file){
         BufferedImage sprite = null;
+
         try {
-            sprite = ImageIO.read(getClass().getClassLoader().getResourceAsStream(file));
+            InputStream is = getClass().getClassLoader().getResourceAsStream(file);
+
+            if (is == null){
+                return null;
+            }
+
+            sprite = ImageIO.read(is);
         } catch (Exception e) {
             Log.doLog(TAG,"ERROR: could not load file: " + "critter.png");
         }

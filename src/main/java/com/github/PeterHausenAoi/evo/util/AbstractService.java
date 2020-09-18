@@ -1,4 +1,4 @@
-package main.java.com.github.PeterHausenAoi.evo.util;
+package com.github.PeterHausenAoi.evo.util;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

@@ -1,7 +1,7 @@
-package main.java.com.github.PeterHausenAoi.evo.entities;
+package com.github.PeterHausenAoi.evo.entities;
 
 import javafx.scene.canvas.GraphicsContext;
-import main.java.com.github.PeterHausenAoi.evo.flow.GridCell;
+import com.github.PeterHausenAoi.evo.flow.GridCell;
 
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
