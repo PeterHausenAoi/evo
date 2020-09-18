@@ -20,7 +20,7 @@ import java.util.*;
 public class Carnivore extends Actor implements Edible{
     private static final String TAG = Carnivore.class.getSimpleName();
 
-    private static final Color BOX_COLOR = Color.BLUE;
+    public static final Color BOX_COLOR = Color.LIGHTBLUE;
 
     public static final List<Class<? extends BaseEntity>> FOOD_CLAZZEZ = Arrays.asList(Herbivore.class, Hunter.class);
     private static final String IMG_CODE = "stella_walk_1.png";
@@ -53,14 +53,14 @@ public class Carnivore extends Actor implements Edible{
         params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
         params.add(new SpeciesParam(KEY_WIDTH, 20.0, 100.0, false));
         params.add(new SpeciesParam(KEY_HEIGHT, 20.0, 200.0, false));
-        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 450.0, false));
-        params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 600.0, false));
+        params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 400.0, false));
         params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
-        params.add(new SpeciesParam(KEY_SPEED, 10.0, 600.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 10.0, 700.0, false));
         params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
         params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 200.0, false));
-        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 400.0, false));
-        params.add(new SpeciesParam(KEY_STARVATIONRATE, 20.0, 50.0, false));
+        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 300.0, false));
+        params.add(new SpeciesParam(KEY_STARVATIONRATE, 20.0, 40.0, false));
         params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
         params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 

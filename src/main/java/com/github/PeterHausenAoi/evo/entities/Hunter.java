@@ -23,7 +23,7 @@ public class Hunter extends Actor implements Edible{
 
     public static final List<Class<? extends BaseEntity>> FOOD_CLAZZEZ = Arrays.asList(Herbivore.class, Carnivore.class);
 
-    private static final Color BOX_COLOR = Color.YELLOW;
+    public static final Color BOX_COLOR = Color.YELLOW;
     private static final int[] DIRECTION_MAP = {5, 4, 3, 6, 2, 7, 0 ,1};
 
     private static final String IMG_CODE = "hunter.png";
@@ -66,8 +66,8 @@ public class Hunter extends Actor implements Edible{
         params.add(new SpeciesParam(KEY_SPEED, 10.0, 400.0, false));
         params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
         params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 200.0, false));
-        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 250.0, false));
-        params.add(new SpeciesParam(KEY_STARVATIONRATE, 20.0, 40.0, false));
+        params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 200.0, false));
+        params.add(new SpeciesParam(KEY_STARVATIONRATE, 30.0, 60.0, false));
         params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
         params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
 
