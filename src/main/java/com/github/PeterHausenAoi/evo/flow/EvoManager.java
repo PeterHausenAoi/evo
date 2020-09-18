@@ -7,6 +7,7 @@ import com.github.PeterHausenAoi.evo.entities.*;
 import com.github.PeterHausenAoi.evo.evolution.EvolutionChamber;
 import com.github.PeterHausenAoi.evo.graphics.ImageFactory;
 import com.github.PeterHausenAoi.evo.graphics.Resizer;
+import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,8 @@ public class EvoManager {
     private long mFoodSpawnTickCount = (int)(30.0 * 0.75);
 
     private long mBaseHerbSpawnTime = (int)(30.0 * 15);
-    private long mBaseCarnSpawnTime = (int)(30.0 * 80);
-    private long mBaseHunterSpawnTime = (int)(30.0 * 100);
+    private long mBaseCarnSpawnTime = (int)(30.0 * 50);
+    private long mBaseHunterSpawnTime = (int)(30.0 * 120);
 
     private long mCurrHerbSpawnTime = mBaseHerbSpawnTime;
     private long mCurrCarnSpawnTime = mBaseCarnSpawnTime;
@@ -291,6 +292,22 @@ public class EvoManager {
 
         mGraphics.setStroke(Color.CORNFLOWERBLUE);
         mGraphics.strokeRect(0,0, 1900, 900);
+
+        mGraphics.setStroke(Food.BOX_COLOR);
+        mGraphics.setFont(new Font(16));
+        mGraphics.strokeText("Food: " + mFoods.size(), 10,20);
+
+        mGraphics.setStroke(Herbivore.BOX_COLOR);
+        mGraphics.setFont(new Font(16));
+        mGraphics.strokeText("Herbivore: " + mHerbivores.size(), 10,40);
+
+        mGraphics.setStroke(Carnivore.BOX_COLOR);
+        mGraphics.setFont(new Font(16));
+        mGraphics.strokeText("Carnivore: " + mCarnivores.size(), 10,60);
+
+        mGraphics.setStroke(Hunter.BOX_COLOR);
+        mGraphics.setFont(new Font(16));
+        mGraphics.strokeText("Hunter: " + mHunters.size(), 10,80);
     }
 
     public class FoodHandler{

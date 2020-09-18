@@ -12,7 +12,7 @@ import java.util.List;
 public final class Food extends BaseEntity implements Edible{
     private static final String TAG = Food.class.getSimpleName();
 
-    private static final Color BOX_COLOR = Color.LIGHTGREEN;
+    public static final Color BOX_COLOR = Color.LIGHTGREEN;
     private static final String IMG_CODE = "food.png";
 
     private int mWidth;

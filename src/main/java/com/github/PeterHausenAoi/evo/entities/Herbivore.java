@@ -21,7 +21,7 @@ import java.util.*;
 public class Herbivore extends Actor implements Tickable, Edible {
     private static final String TAG = Herbivore.class.getSimpleName();
 
-    private static final Color BOX_COLOR = Color.PURPLE;
+    public static final Color BOX_COLOR = Color.LIGHTPINK;
 
     public static final List<Class<? extends BaseEntity>> FOOD_CLAZZEZ = Arrays.asList(Food.class);
     private static final String IMG_CODE = "critter.png";
@@ -55,16 +55,16 @@ public class Herbivore extends Actor implements Tickable, Edible {
         params.add(new SpeciesParam(KEY_Y, 0.0, 900.0, true));
         params.add(new SpeciesParam(KEY_WIDTH, 10.0, 80.0, false));
         params.add(new SpeciesParam(KEY_HEIGHT, 10.0, 80.0, false));
-        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 500.0, false));
+        params.add(new SpeciesParam(KEY_ANGLEPERSEC, 1.0, 700.0, false));
         params.add(new SpeciesParam(KEY_VIEWDISTANCE, 50.0, 500.0, false));
         params.add(new SpeciesParam(KEY_VIEWANGLE, 20.0, 170.0, false));
-        params.add(new SpeciesParam(KEY_SPEED, 50.0, 700.0, false));
-        params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 1000.0, false));
+        params.add(new SpeciesParam(KEY_SPEED, 50.0, 800.0, false));
+        params.add(new SpeciesParam(KEY_MAXFLEEDIST, 10.0, 500.0, false));
         params.add(new SpeciesParam(KEY_MAXHEALTH, 10.0, 150.0, false));
         params.add(new SpeciesParam(KEY_AUDIORADIUS, 10.0, 400.0, false));
         params.add(new SpeciesParam(KEY_STARVATIONRATE, 5.0, 50.0, false));
-        params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 1.0, false));
-        params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.0, 1.0, false));
+        params.add(new SpeciesParam(KEY_FOODPRIORITY, 0.0, 0.5, false));
+        params.add(new SpeciesParam(KEY_FOODWEIGHT, 0.5, 1.0, false));
 
         mSpeciesDescriptor = new SpeciesDescriptor<>(new HerbivoreEntityBuilder(), params, Herbivore.class);
 
@@ -214,7 +214,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
             mMode = FLEE_MODE;
         }
 
-        if (isFoodPriority()){
+        if (mMode.equals(FLEE_MODE) && isFoodPriority()){
 //            Log.doLog(TAG, "FORCE FEED");
             mMode = EAT_MODE;
             mConePredators = new HashSet<>();
