@@ -47,6 +47,7 @@ abstract public class Actor extends MovingEntity implements Movable {
     protected double mFoodPriority;
     protected double mFoodWeight;
     protected Integer mLifeTime;
+    protected Integer mKillCount;
 
     protected Set<Class<? extends BaseEntity>> mFoodClazzez;
     protected Set<Class<? extends BaseEntity>> mPredatorClazzez;
@@ -68,6 +69,7 @@ abstract public class Actor extends MovingEntity implements Movable {
 
         mCurrHealth = mMaxHealth;
         mLifeTime = 0;
+        mKillCount = 0;
     }
 
     public Actor(int x, int y, int width, int height) {
@@ -197,6 +199,7 @@ abstract public class Actor extends MovingEntity implements Movable {
                 food.digest();
                 f.clearContainers();
 
+                this.mKillCount++;
                 this.mCurrHealth += food.getNutrient();
 
                 if(this.mCurrHealth > mMaxHealth){
