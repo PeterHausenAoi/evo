@@ -167,7 +167,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
         p = rotatePoint(new Point(mViewFocus.getX2(), mViewFocus.getY2()), new Point(mViewFocus.getX1(), mViewFocus.getY1()), 360 - mViewAngle / 2 );
 
-        mViewCounter= new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
+        mViewCounter = new Line2D.Double(mCenter.getX().doubleValue(), mCenter.getY().doubleValue(),
                 p.getX().doubleValue(), p.getY().doubleValue());
 
         loadSpriteSheet();
@@ -486,7 +486,7 @@ public class Herbivore extends Actor implements Tickable, Edible {
         props.put(KEY_FOODPRIORITY, mFoodPriority);
         props.put(KEY_FOODWEIGHT, mFoodWeight);
 
-        return new Specimen(mGen, mLifeTime.doubleValue(), props);
+        return new Specimen(mGen, mLifeTime.doubleValue() * (mKillCount == 0 ? 1 : mKillCount.doubleValue()), props);
     }
 
     @Override
@@ -512,7 +512,6 @@ public class Herbivore extends Actor implements Tickable, Edible {
         g.fillText(String.valueOf(mGen), mTopLeft.getX().doubleValue(), mTopLeft.getY().doubleValue() - 10);
 
         if (EvoManager.DEBUG_DISPLAY) {
-
             g.setFill(BOX_COLOR);
             double width = mTopRight.getX().doubleValue() - mTopLeft.getX().doubleValue();
             double height = mBotLeft.getY().doubleValue() - mTopLeft.getY().doubleValue();
@@ -525,10 +524,10 @@ public class Herbivore extends Actor implements Tickable, Edible {
 
             g.setStroke(Color.AQUA);
             g.setLineWidth(2);
-            g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus.getX2(), mViewFocus.getY2());
+            g.strokeLine(mViewFocus.getX1(), mViewFocus.getY1(), mViewFocus. getX2(), mViewFocus.getY2());
 
             g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));
-            g.setLineWidth(2);
+            g.setLineWidth (2);
             g.strokeLine(mViewClock.getX1(), mViewClock.getY1(), mViewClock.getX2(), mViewClock.getY2());
 
             g.setStroke(mMode.equals(FLEE_MODE) ? Color.BLUE : (mTargetEntity == null ? Color.GREY : Color.RED));

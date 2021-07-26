@@ -233,6 +233,7 @@ public class Hunter extends Actor implements Edible{
                     food.digest();
                     f.clearContainers();
 
+                    this.mKillCount++;
                     this.mCurrHealth += food.getNutrient();
 
                     if(this.mCurrHealth > mMaxHealth){
@@ -431,7 +432,7 @@ public class Hunter extends Actor implements Edible{
         props.put(KEY_BULLET_SIZE, mBulletsize);
         props.put(KEY_BULLET_SPEED, mBulletSpeed);
 
-        return new Specimen(mGen, mLifeTime.doubleValue(), props);
+        return new Specimen(mGen, mLifeTime.doubleValue() * (mKillCount == 0 ? 1 : mKillCount.doubleValue()), props);
     }
 
     @Override

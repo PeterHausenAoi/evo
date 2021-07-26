@@ -268,7 +268,7 @@ public class Carnivore extends Actor implements Edible{
         props.put(KEY_FOODPRIORITY, mFoodPriority);
         props.put(KEY_FOODWEIGHT, mFoodWeight);
 
-        return new Specimen(mGen, mLifeTime.doubleValue(), props);
+        return new Specimen(mGen, mLifeTime.doubleValue() * (mKillCount == 0 ? 1 : mKillCount.doubleValue()), props);
     }
 
     @Override
