@@ -1,7 +1,6 @@
 package com.github.PeterHausenAoi.evo;
 
 import javafx.animation.AnimationTimer;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;

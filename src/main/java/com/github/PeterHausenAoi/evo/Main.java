@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 import com.github.PeterHausenAoi.evo.util.Log;
 
 import java.io.File;
